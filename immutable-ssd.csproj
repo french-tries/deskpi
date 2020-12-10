@@ -82,21 +82,25 @@
     <Compile Include="test\SsdTests.cs" />
     <Compile Include="test\DirectSsdWriterTests.cs" />
     <Compile Include="src\Glyph.cs" />
-    <Compile Include="src\ScrollingGlyphSelector.cs" />
+    <Compile Include="src\ScrollingSelector.cs" />
     <Compile Include="test\ScrollingGlyphSelectorTests.cs" />
     <Compile Include="test\GlyphTests.cs" />
     <Compile Include="src\StringSsdWriter.cs" />
-    <Compile Include="src\ITickable.cs" />
     <Compile Include="src\Pin.cs" />
     <Compile Include="test\StringSsdWriterTests.cs" />
     <Compile Include="src\ISsdWriter.cs" />
     <Compile Include="src\Step.cs" />
     <Compile Include="src\GpioHandler.cs" />
-    <Compile Include="src\ImmutableTimer.cs" />
-    <Compile Include="src\IGlyphSelector.cs" />
+    <Compile Include="src\ISelector.cs" />
     <Compile Include="test\ImmutableTimerTests.cs" />
     <Compile Include="src\ConsoleGpioHandler.cs" />
-    <Compile Include="src\SimplerDirectSsdWriter.cs" />
+    <Compile Include="src\Max7219CommonAnodeWriter.cs" />
+    <Compile Include="src\surplus\ImmutableTimer.cs" />
+    <Compile Include="src\IInterruptHandler.cs" />
+    <Compile Include="src\IInterruptReceiver.cs" />
+    <Compile Include="test\stubs\InterruptHandlerStub.cs" />
+    <Compile Include="test\stubs\SelectorStub.cs" />
+    <Compile Include="test\stubs\SsdWriterStub.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -105,6 +109,8 @@
   <ItemGroup>
     <Folder Include="src\" />
     <Folder Include="test\" />
+    <Folder Include="src\surplus\" />
+    <Folder Include="test\stubs\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

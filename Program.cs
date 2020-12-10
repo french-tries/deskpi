@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using blink.src;
-using immutableSsd.src;
-using Unosquare.RaspberryIO;
+﻿using Unosquare.RaspberryIO;
 using Unosquare.RaspberryIO.Abstractions;
 using Unosquare.WiringPi;
 
 // segment_pins = [ 21, 20, 16, 12, 7, 8, 25, 24 ]
 // digit_pins = [ 26, 19, 13, 6, 5, 11, 9, 10 ]
 
-namespace blink
+namespace immutableSsd
 {
     class MainClass
     {
@@ -43,7 +37,7 @@ namespace blink
 
         public static void HelloWorld()
         {
-            var gpioHandler = new GpioHandler();
+/*            var gpioHandler = new GpioHandler();
             var segment_pins = ImmutableList<Pin>.Empty
                 .Add(new Pin(21, false)).Add(new Pin(20, false))
                 .Add(new Pin(16, false)).Add(new Pin(12, false))
@@ -61,7 +55,7 @@ namespace blink
 
             var converter = new SegmentsConverter();
 
-            var selector = new ScrollingGlyphSelector(1000000, 2000000, digit_pins.Count);
+            var selector = new ScrollingSelector(1000000, 2000000, digit_pins.Count);
 
             ISsdWriter<string> stringWriter = 
                 new StringSsdWriter(directWriter,converter.GetSegments, selector);
@@ -76,7 +70,7 @@ namespace blink
 
                 gpioHandler.SleepMicros(step);
                 millis += step;
-            }
+            }*/
         }
 
         public static void Main(string[] args)

@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using immutableSsd.src;
+using immutableSsd.test.stubs;
 using NUnit.Framework;
 
 namespace immutableSsd.test
@@ -10,75 +11,79 @@ namespace immutableSsd.test
     public class ScrollingGlyphSelectorTests
     {
         [TestCase]
-        public void GetGlyph_Empty_ReturnsEmptyGlyphs()
+        public void GetSelected_Empty_ReturnsEmpty()
         {
-            var selector = new ScrollingGlyphSelector(1,2,1);
+            var interruptHandler = new InterruptHandlerStub();
+            var selector = new ScrollingSelector<int>(interruptHandler, 1, 2,1);
 
-            Assert.AreEqual(ImmutableList<Glyph>.Empty, selector.GetSelected());
+            Assert.AreEqual(ImmutableList<int>.Empty, selector.GetSelected());
         }
 
         [TestCase]
-        public void GetGlyph_AtStart_ReturnsWithoutOffset(int pos)
+        public void GetSelected_AtStart_ReturnsWithoutOffset()
         {
-            var text = ImmutableList<Glyph>.Empty.Add(new Glyph('a', true))
-                .Add(new Glyph('b', false)).Add(new Glyph('c', true));
+            var interruptHandler = new InterruptHandlerStub();
+            var text = ImmutableList<char>.Empty.Add('a')
+                .Add('b');
 
             uint delay = 1;
             uint endsDelay = 2;
 
-            var selector = new ScrollingGlyphSelector(delay, endsDelay, 3).SetText(text);
+            var selector = new ScrollingSelector<char>(
+                interruptHandler, delay, endsDelay, 3).UpdateValues(text);
 
             Assert.AreEqual(text, selector.GetSelected());
         }
 
         [TestCase]
-        public void GetGlyph_PartialDisplay_ReturnsSubList(int pos)
+        public void GetGlyph_PartialDisplay_ReturnsSubList()
         {
-            var text = ImmutableList<Glyph>.Empty.Add(new Glyph('a', true))
-                .Add(new Glyph('b', false)).Add(new Glyph('c', true));
+            var interruptHandler = new InterruptHandlerStub();
+            var text = ImmutableList<char>.Empty.Add('a')
+                .Add('b').Add('c');
 
             uint delay = 1;
             uint endsDelay = 2;
 
-            var selector = new ScrollingGlyphSelector(delay, endsDelay, 2).SetText(text);
+            var selector = new ScrollingSelector<char>(
+                interruptHandler, delay, endsDelay, 2).UpdateValues(text);
 
             Assert.True(text.GetRange(0,2).SequenceEqual(selector.GetSelected()));
         }
 
         [TestCase]
-        public void GetGlyph_TextTooShort_ReturnsSubList(int pos)
-        {
-            var text = ImmutableList<Glyph>.Empty.Add(new Glyph('a', true))
-                .Add(new Glyph('b', false)).Add(new Glyph('c', true));
-
-            uint delay = 1;
-            uint endsDelay = 2;
-
-            var selector = new ScrollingGlyphSelector(delay, endsDelay, 3);
-
-            Assert.True(text.SequenceEqual(selector.GetSelected()));
-        }
-
-
-        [TestCase]
         public void GetGlyph_WithDelay_ReturnsWithOffset()
         {
-            var text = ImmutableList<Glyph>.Empty.Add(new Glyph('a', true))
-                .Add(new Glyph('b', false)).Add(new Glyph('c', true));
+            var interruptHandler = new InterruptHandlerStub();
+            var text = ImmutableList<char>.Empty.Add('a')
+                .Add('b').Add('c');
 
             uint delay = 1;
             uint endsDelay = 2;
 
-            var selector = new ScrollingGlyphSelector(delay, endsDelay, 1).SetText(text);
+            var selector = new ScrollingSelector<char>(
+                interruptHandler, delay, endsDelay, 1).UpdateValues(text);
 
-            selector = selector.Tick(2);
+            interruptHandler.TestReceived(selector, 2);
+            interruptHandler.TestEmpty();
+
+            selector = selector.ReceiveInterrupt(selector, 2);
+
             Assert.True(text.GetRange(1, 1).SequenceEqual(selector.GetSelected()));
+            interruptHandler.TestReceived(selector, 1);
+            interruptHandler.TestEmpty();
 
-            selector = selector.Tick(3);
+            selector = selector.ReceiveInterrupt(selector, 3);
+
             Assert.True(text.GetRange(2, 1).SequenceEqual(selector.GetSelected()));
+            interruptHandler.TestReceived(selector, 2);
+            interruptHandler.TestEmpty();
 
-            selector = selector.Tick(5);
+            selector = selector.ReceiveInterrupt(selector, 5);
+
             Assert.True(text.GetRange(0, 1).SequenceEqual(selector.GetSelected()));
+            interruptHandler.TestReceived(selector, 2);
+            interruptHandler.TestEmpty();
         }
     }
 }

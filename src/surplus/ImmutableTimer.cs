@@ -2,7 +2,7 @@
 
 namespace immutableSsd.src
 {
-    public class ImmutableTimer : ITickable<ImmutableTimer>
+    public class ImmutableTimer
     {
         public ImmutableTimer(uint interval, uint? lastUpdate = null)
         {
@@ -30,7 +30,7 @@ namespace immutableSsd.src
             return new ImmutableTimer(interval, lastUpdate);
         }
 
-        public uint Remaining(uint currentTime)
+        public int Remaining(uint currentTime)
         {
             if (!lastUpdate.HasValue)
             {
@@ -43,7 +43,7 @@ namespace immutableSsd.src
             {
                 return 0;
             }
-            return next - currentTime;
+            return (int)(next - currentTime);
         }
 
         public uint Interval { get; }

@@ -1,5 +1,4 @@
-﻿using System;
-using blink.src;
+﻿using System.Collections.Immutable;
 
 namespace immutableSsd.src
 {
@@ -7,8 +6,8 @@ namespace immutableSsd.src
     {
         public delegate byte GlyphToSegments(Glyph glyph);
 
-        public StringSsdWriter(ISsdWriter<Func<int, byte>> writer, GlyphToSegments converter,
-            IGlyphSelector selector)
+        public StringSsdWriter(ISsdWriter<ImmutableList<byte>> writer, GlyphToSegments converter,
+            ISelector<byte> selector)
         {
             this.writer = writer;
             this.converter = converter;
@@ -16,20 +15,23 @@ namespace immutableSsd.src
         }
 
         public ISsdWriter<string> Write(string text)
-           => new StringSsdWriter(writer, converter, selector.SetText(Glyph.FromString(text)));
-
-        public ISsdWriter<string> Tick(uint currentTime)
         {
-            var newSelector = selector.Tick(currentTime);
-            var newWriter = writer;
+            var newValues = Glyph.FromString(text).ConvertAll((g) => converter(g));
 
-            if (selector != newSelector)
-            {
-                var selected = newSelector.GetSelected();
-                newWriter = newWriter.Write((index) =>
-                    index >= selected.Count ? (byte)0 : converter(selected[index]));
-            }
-            newWriter = newWriter.Tick(currentTime);
+            var newSelector = selector.UpdateValues(newValues);
+
+            var newWriter = writer.Write(newSelector.GetSelected());
+
+            return new StringSsdWriter(newWriter, converter, newSelector);
+        }
+
+        public ISsdWriter<string> ReceiveInterrupt(object caller, uint currentTime)
+        {
+            var newSelector = selector.ReceiveInterrupt(caller, currentTime);
+
+            var newWriter = (selector != newSelector) ?
+                writer.Write(newSelector.GetSelected()):
+                writer.ReceiveInterrupt(caller, currentTime);
 
             if (selector != newSelector || newWriter != writer)
             {
@@ -38,13 +40,10 @@ namespace immutableSsd.src
             return this;
         }
 
-        public uint Remaining(uint currentTime) =>
-            Math.Min(writer.Remaining(currentTime), selector.Remaining(currentTime));
-
         public int AvailableDigits => writer.AvailableDigits;
 
-        private readonly ISsdWriter<Func<int, byte>> writer;
+        private readonly ISsdWriter<ImmutableList<byte>> writer;
         private readonly GlyphToSegments converter;
-        private readonly IGlyphSelector selector;
+        private readonly ISelector<byte> selector;
     }
 }

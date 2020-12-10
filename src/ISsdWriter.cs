@@ -1,8 +1,6 @@
-﻿using immutableSsd.src;
-
-namespace blink.src
+﻿namespace immutableSsd.src
 {
-    public interface ISsdWriter<TPARAM> : ITickable<ISsdWriter<TPARAM>>
+    public interface ISsdWriter<TPARAM> : IInterruptReceiver<ISsdWriter<TPARAM>>
     {
         int AvailableDigits { get; }
         ISsdWriter<TPARAM> Write(TPARAM values);

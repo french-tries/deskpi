@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using immutableSsd.src;
 
-namespace blink.src
+namespace immutableSsd.src
 {
     public class SegmentsConverter
     {
