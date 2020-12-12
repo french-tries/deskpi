@@ -101,6 +101,7 @@
     <Compile Include="test\stubs\InterruptHandlerStub.cs" />
     <Compile Include="test\stubs\SelectorStub.cs" />
     <Compile Include="test\stubs\SsdWriterStub.cs" />
+    <Compile Include="src\HackyInterruptHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

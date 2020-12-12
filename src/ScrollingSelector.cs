@@ -7,7 +7,7 @@ namespace immutableSsd.src
     public class ScrollingSelector<T> : ISelector<T>
     {
         public ScrollingSelector(IInterruptHandler handler, 
-            uint delay, uint endsDelay, ushort availableDigits) : 
+            uint delay, uint endsDelay, uint availableDigits) : 
             this(handler, delay, endsDelay, availableDigits, ImmutableList<T>.Empty, 0)
         {
         }
