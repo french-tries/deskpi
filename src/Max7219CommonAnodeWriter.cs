@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 namespace immutableSsd.src
 {
     // TODO daisy chaining chips
-    // TODO != %8 limits
     public class Max7219CommonAnodeWriter : ISsdWriter<ImmutableList<byte>>
     {
         public static ImmutableList<byte> Rotate(ImmutableList<byte> values)
@@ -85,23 +84,23 @@ namespace immutableSsd.src
             => this;
 
         private readonly Action<byte[]> spiWriteAction;
-
-
         /*
         public static void Main(string[] args)
         {
             Pi.Init<BootstrapWiringPi>();
             Pi.Spi.Channel0Frequency = SpiChannel.MinFrequency;
 
-            SetupChip();
+            var writer = new Max7219CommonAnodeWriter((byte[] buffer) =>
+                Pi.Spi.Channel0.SendReceive(buffer));
 
             var values = new List<byte> {
-                0b11111100, 0b01100000, 0b11011010, 0b11110010,
-                0b11100000, 0b01100110, 0b10110110, 0b10111110
+                0b11111100, 0b01100001, 0b11011011, 0b11110010,
+                0b01100111, 0b10110110, 0b10111110
             }.ToImmutableList();
 
-            //HelloWorld();
-            Display(Rotate(values));
+            writer.Write(values);
+
+            while (true) { }
         }*/
     }
 }
