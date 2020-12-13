@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 
-// @todo this vs segments char directly?
+// TODO this vs segments char directly?
 namespace immutableSsd.src
 {
     public class Glyph : IEquatable<Glyph>

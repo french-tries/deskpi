@@ -3,8 +3,8 @@ using System.Collections.Immutable;
 
 namespace immutableSsd.src
 {
-    // @todo daisy chaining chips
-    // @todo != %8 limits
+    // TODO daisy chaining chips
+    // TODO != %8 limits
     public class Max7219CommonAnodeWriter : ISsdWriter<ImmutableList<byte>>
     {
         public static ImmutableList<byte> Rotate(ImmutableList<byte> values)

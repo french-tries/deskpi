@@ -1,27 +1,27 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace immutableSsd.src
 {
-    // @todo applier and steps are ugly
     public class DirectSsdWriter : ISsdWriter<ImmutableList<byte>>
     {
         public DirectSsdWriter(ImmutableList<Pin> segmentPins, ImmutableList<Pin> digitPins,
-            StepApplier applier, IInterruptHandler interruptHandler, uint interval) :
-            this(segmentPins, digitPins, applier, interruptHandler, interval, 
+            Action<Pin, bool> writeAction, IInterruptHandler interruptHandler, uint interval) :
+            this(segmentPins, digitPins, writeAction, interruptHandler, interval, 
                 ImmutableList<byte>.Empty)
         {
         }
 
         private DirectSsdWriter(ImmutableList<Pin> segmentPins, ImmutableList<Pin> digitPins,
-            StepApplier applier, IInterruptHandler interruptHandler, uint interval,
+            Action<Pin, bool> writeAction, IInterruptHandler interruptHandler, uint interval,
             ImmutableList<byte> values, int currentDigit = 0)
         {
             Debug.Assert(segmentPins.Count == 8);
 
             this.segmentPins = segmentPins;
             this.digitPins = digitPins;
-            this.applier = applier;
+            this.writeAction = writeAction;
             this.interruptHandler = interruptHandler;
             this.interval = interval;
             this.values = values;
@@ -32,7 +32,7 @@ namespace immutableSsd.src
         }
 
         public ISsdWriter<ImmutableList<byte>> Write(ImmutableList<byte> newValues) =>
-            new DirectSsdWriter(segmentPins, digitPins, applier, interruptHandler, interval, newValues);
+            new DirectSsdWriter(segmentPins, digitPins, writeAction, interruptHandler, interval, newValues);
 
         public ISsdWriter<ImmutableList<byte>> ReceiveInterrupt(object caller, uint currentTime)
         {
@@ -41,7 +41,7 @@ namespace immutableSsd.src
                 var nextDigit = currentDigit + 1;
                 if (nextDigit >= digitPins.Count) nextDigit = 0;
 
-                return new DirectSsdWriter(segmentPins, digitPins, applier,
+                return new DirectSsdWriter(segmentPins, digitPins, writeAction,
                     interruptHandler, interval, values, nextDigit);
             }
             return this;
@@ -53,11 +53,11 @@ namespace immutableSsd.src
         {
             for (int i = 0; i < digitPins.Count; ++i)
             {
-                applier(new WriteStep(digitPins[i], false));
+                writeAction(digitPins[i], false);
             }
             for (int i = 0; i < segmentPins.Count; ++i)
             {
-                applier(new WriteStep(segmentPins[i], false));
+                writeAction(segmentPins[i], false);
             }
         }
 
@@ -68,16 +68,16 @@ namespace immutableSsd.src
                 Clear();
                 return;
             }
-            applier(new WriteStep(digitPins[currentDigit > 0 ? currentDigit - 1 : digitPins.Count - 1], false));
+            writeAction(digitPins[currentDigit > 0 ? currentDigit - 1 : digitPins.Count - 1], false);
 
             for (int i = 0; i < segmentPins.Count; ++i)
             {
-                applier(new WriteStep(segmentPins[i], (values[currentDigit] & (1 << (7 - i))) != 0));
+                writeAction(segmentPins[i], (values[currentDigit] & (1 << (7 - i))) != 0);
             }
-            applier(new WriteStep(digitPins[currentDigit], true));
+            writeAction(digitPins[currentDigit], true);
         }
 
-        private readonly StepApplier applier;
+        private readonly Action<Pin, bool> writeAction;
         private readonly ImmutableList<Pin> segmentPins;
         private readonly ImmutableList<Pin> digitPins;
 

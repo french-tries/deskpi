@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using Unosquare.RaspberryIO;
 using Unosquare.RaspberryIO.Abstractions;
 using Unosquare.WiringPi;
@@ -26,19 +25,6 @@ namespace immutableSsd.src
                 pins.Add(pin, gpioPin);
             }
             pins[pin].Write(value == pin.ActiveHigh);
-        }
-
-        public void Handle(Step step)
-        {
-            switch(step)
-            {
-                case WriteStep writeStep:
-                    Write(writeStep.Pin, writeStep.Value);
-                    break;
-                default:
-                    Debug.Fail("Unrecognised step");
-                    break;
-            }
         }
 
         public byte[] SpiWrite(byte[] buffer) =>

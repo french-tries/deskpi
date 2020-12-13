@@ -35,7 +35,7 @@ namespace immutableSsd
             while (true) { }
         }
 
-        // @todo if raised before construction is completed, events are lost
+        // TODO if raised before construction is completed, events are lost
         private void ReceiveInterrupt(object caller, uint currentTime)
         {
             if (stringWriter != null)

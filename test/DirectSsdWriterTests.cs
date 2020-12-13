@@ -8,39 +8,32 @@ namespace immutableSsd.test
 {
     class TestGpio
     {
-        public void Write(Step step)
+        public void Write(Pin pin, bool value)
         {
-            if (step is WriteStep writeStep)
-            {
-                written = written.Enqueue(writeStep);
-            }
-            else
-            {
-                Assert.Fail();
-            }
+            written = written.Enqueue((pin, value));
         }
 
         public void TestWritten(int expectedId, bool expectedActive)
         {
-            var step = written.Peek();
+            (Pin pin, bool value) = written.Peek();
 
-            Assert.AreEqual(expectedId, step.Pin.Id);
-            Assert.AreEqual(expectedActive, step.Value);
+            Assert.AreEqual(expectedId, pin.Id);
+            Assert.AreEqual(expectedActive, value);
 
             written = written.Dequeue();
         }
 
         public void TestEmpty()
         {
-            Assert.AreEqual(ImmutableQueue<WriteStep>.Empty, written);
+            Assert.AreEqual(ImmutableQueue<(Pin, bool)>.Empty, written);
         }
 
         public void Clear()
         {
-            written = ImmutableQueue<WriteStep>.Empty;
+            written = ImmutableQueue<(Pin, bool)>.Empty;
         }
 
-        private ImmutableQueue<WriteStep> written = ImmutableQueue<WriteStep>.Empty;
+        private ImmutableQueue<(Pin, bool)> written = ImmutableQueue<(Pin, bool)>.Empty;
     }
 
     [TestFixture]

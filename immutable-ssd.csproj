@@ -89,11 +89,9 @@
     <Compile Include="src\Pin.cs" />
     <Compile Include="test\StringSsdWriterTests.cs" />
     <Compile Include="src\ISsdWriter.cs" />
-    <Compile Include="src\Step.cs" />
     <Compile Include="src\GpioHandler.cs" />
     <Compile Include="src\ISelector.cs" />
     <Compile Include="test\ImmutableTimerTests.cs" />
-    <Compile Include="src\ConsoleGpioHandler.cs" />
     <Compile Include="src\Max7219CommonAnodeWriter.cs" />
     <Compile Include="src\surplus\ImmutableTimer.cs" />
     <Compile Include="src\IInterruptHandler.cs" />
