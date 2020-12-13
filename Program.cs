@@ -36,6 +36,7 @@ namespace immutableSsd
         }
 
         // TODO if raised before construction is completed, events are lost
+        // TODO stop / restart program ?
         private void ReceiveInterrupt(object caller, uint currentTime)
         {
             if (stringWriter != null)

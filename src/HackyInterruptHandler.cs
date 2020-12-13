@@ -30,6 +30,18 @@ namespace immutableSsd.src
             timer.Start();
         }
 
+        public void UnrequestInterrupt(object caller)
+        {
+            if (timer != null)
+            {
+                timer.Stop();
+                timer.Dispose();
+                timer = null;
+            }
+
+            this.caller = null;
+        }
+
         public void Dispose()
         {
             timer.Dispose();

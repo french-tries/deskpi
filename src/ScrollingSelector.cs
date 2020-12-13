@@ -35,8 +35,12 @@ namespace immutableSsd.src
             }
         }
 
-        public ISelector<T> UpdateValues(ImmutableList<T> newValues) =>
-            new ScrollingSelector<T>(handler, delay, endsDelay, availableDigits, newValues, 0);
+        public ISelector<T> UpdateValues(ImmutableList<T> newValues)
+        {
+            handler.UnrequestInterrupt(this);
+            return new ScrollingSelector<T>(
+                handler, delay, endsDelay, availableDigits, newValues, 0);
+        }
 
         public ImmutableList<T> GetSelected()
         {

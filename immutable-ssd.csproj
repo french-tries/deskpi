@@ -83,7 +83,7 @@
     <Compile Include="test\DirectSsdWriterTests.cs" />
     <Compile Include="src\Glyph.cs" />
     <Compile Include="src\ScrollingSelector.cs" />
-    <Compile Include="test\ScrollingGlyphSelectorTests.cs" />
+    <Compile Include="test\ScrollingSelectorTests.cs" />
     <Compile Include="test\GlyphTests.cs" />
     <Compile Include="src\StringSsdWriter.cs" />
     <Compile Include="src\Pin.cs" />

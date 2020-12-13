@@ -67,8 +67,8 @@ namespace immutableSsd.test
                 ImmutableList<Pin>.Empty.Add(new Pin(2, true)).Add(new Pin(3, true)),
                 gpio.Write, interruptHandler, 1);
 
-            interruptHandler.TestReceived(writer, 1);
-            interruptHandler.TestEmpty();
+            interruptHandler.TestRequested(writer, 1);
+            interruptHandler.TestRequestedEmpty();
         }
 
         [TestCase]

@@ -9,24 +9,44 @@ namespace immutableSsd.test.stubs
     {
         public void RequestInterrupt(object caller, uint delay)
         {
-            written = written.Enqueue((caller, delay));
+            requested = requested.Enqueue((caller, delay));
         }
 
-        public void TestReceived(object expectedCaller, uint expectedDelay)
+        public void TestRequested(object expectedCaller, uint expectedDelay)
         {
-            (object caller, uint delay) = written.Peek();
+            (object caller, uint delay) = requested.Peek();
 
             Assert.AreEqual(expectedCaller, caller);
             Assert.AreEqual(expectedDelay, delay);
 
-            written = written.Dequeue();
+            requested = requested.Dequeue();
         }
 
-        public void TestEmpty()
+        public void TestRequestedEmpty()
         {
-            Assert.AreEqual(ImmutableQueue<(object, uint)>.Empty, written);
+            Assert.AreEqual(ImmutableQueue<(object, uint)>.Empty, requested);
         }
 
-        private ImmutableQueue<(object, uint)> written = ImmutableQueue<(object, uint)>.Empty;
+        public void UnrequestInterrupt(object caller)
+        {
+            unrequested = unrequested.Enqueue(caller);
+        }
+
+        public void TestUnrequested(object expectedCaller)
+        {
+            object caller = unrequested.Peek();
+
+            Assert.AreEqual(expectedCaller, caller);
+
+            unrequested = unrequested.Dequeue();
+        }
+
+        public void TestUnrequestedEmpty()
+        {
+            Assert.AreEqual(ImmutableQueue<object>.Empty, unrequested);
+        }
+
+        private ImmutableQueue<(object, uint)> requested = ImmutableQueue<(object, uint)>.Empty;
+        private ImmutableQueue<object> unrequested = ImmutableQueue<object>.Empty;
     }
 }
