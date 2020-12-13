@@ -42,7 +42,8 @@ namespace immutableSsd.src
                 { '6', 0b00111110 },
                 { '7', 0b11100000 },
                 { '8', 0b11111110 },
-                { '9', 0b11100110 }
+                { '9', 0b11100110 },
+                { ' ', 0b00000000 }
                 }.ToImmutableDictionary();
 
         public SegmentsConverter()
