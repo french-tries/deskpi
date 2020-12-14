@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace immutableSsd.src
+namespace immutableSsd
 {
     public class SegmentsConverter
     {

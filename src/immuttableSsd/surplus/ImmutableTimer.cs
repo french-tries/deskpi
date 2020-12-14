@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace immutableSsd.src
+namespace immutableSsd
 {
     public class ImmutableTimer
     {

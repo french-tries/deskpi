@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace immutableSsd.src
+namespace immutableSsd
 {
     public class ScrollingSelector<T> : ISelector<T>
     {

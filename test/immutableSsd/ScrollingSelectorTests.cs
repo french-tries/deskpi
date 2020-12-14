@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
-using immutableSsd.src;
+using immutableSsd;
 using immutableSsd.test.stubs;
 using NUnit.Framework;
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 
-namespace immutableSsdbleSsd.test
+namespace immutableSsd.test
 {
     [TestFixture]
     public class SsdTests

@@ -77,29 +77,31 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="src\SegmentsConverter.cs" />
-    <Compile Include="src\DirectSsdWriter.cs" />
-    <Compile Include="test\SsdTests.cs" />
-    <Compile Include="test\DirectSsdWriterTests.cs" />
-    <Compile Include="src\Glyph.cs" />
-    <Compile Include="src\ScrollingSelector.cs" />
-    <Compile Include="test\ScrollingSelectorTests.cs" />
-    <Compile Include="test\GlyphTests.cs" />
-    <Compile Include="src\StringSsdWriter.cs" />
-    <Compile Include="src\Pin.cs" />
-    <Compile Include="test\StringSsdWriterTests.cs" />
-    <Compile Include="src\ISsdWriter.cs" />
-    <Compile Include="src\GpioHandler.cs" />
-    <Compile Include="src\ISelector.cs" />
-    <Compile Include="test\ImmutableTimerTests.cs" />
-    <Compile Include="src\Max7219CommonAnodeWriter.cs" />
-    <Compile Include="src\surplus\ImmutableTimer.cs" />
-    <Compile Include="src\IInterruptHandler.cs" />
-    <Compile Include="src\IInterruptReceiver.cs" />
-    <Compile Include="test\stubs\InterruptHandlerStub.cs" />
-    <Compile Include="test\stubs\SelectorStub.cs" />
-    <Compile Include="test\stubs\SsdWriterStub.cs" />
-    <Compile Include="src\HackyInterruptHandler.cs" />
+    <Compile Include="src\immuttableSsd\DirectSsdWriter.cs" />
+    <Compile Include="src\immuttableSsd\Glyph.cs" />
+    <Compile Include="src\immuttableSsd\GpioHandler.cs" />
+    <Compile Include="src\immuttableSsd\HackyInterruptHandler.cs" />
+    <Compile Include="src\immuttableSsd\IGPIO.cs" />
+    <Compile Include="src\immuttableSsd\IInterruptHandler.cs" />
+    <Compile Include="src\immuttableSsd\IInterruptReceiver.cs" />
+    <Compile Include="src\immuttableSsd\ISelector.cs" />
+    <Compile Include="src\immuttableSsd\ISsdWriter.cs" />
+    <Compile Include="src\immuttableSsd\Max7219CommonAnodeWriter.cs" />
+    <Compile Include="src\immuttableSsd\Pin.cs" />
+    <Compile Include="src\immuttableSsd\ScrollingSelector.cs" />
+    <Compile Include="src\immuttableSsd\SegmentsConverter.cs" />
+    <Compile Include="src\immuttableSsd\Step.cs" />
+    <Compile Include="src\immuttableSsd\StringSsdWriter.cs" />
+    <Compile Include="src\immuttableSsd\surplus\ImmutableTimer.cs" />
+    <Compile Include="test\immutableSsd\DirectSsdWriterTests.cs" />
+    <Compile Include="test\immutableSsd\GlyphTests.cs" />
+    <Compile Include="test\immutableSsd\ImmutableTimerTests.cs" />
+    <Compile Include="test\immutableSsd\ScrollingSelectorTests.cs" />
+    <Compile Include="test\immutableSsd\SsdTests.cs" />
+    <Compile Include="test\immutableSsd\StringSsdWriterTests.cs" />
+    <Compile Include="test\immutableSsd\stubs\InterruptHandlerStub.cs" />
+    <Compile Include="test\immutableSsd\stubs\SelectorStub.cs" />
+    <Compile Include="test\immutableSsd\stubs\SsdWriterStub.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -108,8 +110,7 @@
   <ItemGroup>
     <Folder Include="src\" />
     <Folder Include="test\" />
-    <Folder Include="src\surplus\" />
-    <Folder Include="test\stubs\" />
+    <Folder Include="src\common\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

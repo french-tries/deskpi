@@ -3,7 +3,7 @@ using Unosquare.RaspberryIO;
 using Unosquare.RaspberryIO.Abstractions;
 using Unosquare.WiringPi;
 
-namespace immutableSsd.src
+namespace immutableSsd
 {
     public class GpioHandler
     {

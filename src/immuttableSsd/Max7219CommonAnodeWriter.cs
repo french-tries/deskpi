@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 
-namespace immutableSsd.src
+namespace immutableSsd
 {
     // TODO daisy chaining chips
     public class Max7219CommonAnodeWriter : ISsdWriter<ImmutableList<byte>>

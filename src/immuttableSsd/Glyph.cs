@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 
 // TODO this vs segments char directly?
-namespace immutableSsd.src
+namespace immutableSsd
 {
     public class Glyph : IEquatable<Glyph>
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 using deskpi.test.stubs;
-using immutableSsd.src;
+using immutableSsd;
 using NUnit.Framework;
 
 namespace immutableSsd.test

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Timers;
-using immutableSsd.src;
+using immutableSsd;
 
-namespace immutableSsd.src
+namespace immutableSsd
 {
     public class HackyInterruptHandler : IInterruptHandler, IDisposable
     {

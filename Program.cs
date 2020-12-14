@@ -1,5 +1,5 @@
 ﻿using System;
-using immutableSsd.src;
+using immutableSsd;
 
 namespace immutableSsd
 {
@@ -27,11 +27,25 @@ namespace immutableSsd
 
             stringWriter = new StringSsdWriter(directWriter, converter.GetSegments, selector);
 
-            stringWriter = stringWriter.Write("Hello world please work...");
+            var topPin = new Pin(2, true);
+            topLed = (b) => gpioHandler.Write(topPin, b);
+
+            var middlePin = new Pin(16, true);
+            middleLed = (b) => gpioHandler.Write(middlePin, b);
+
+            var bottomPin = new Pin(20, true);
+            bottomLed = (b) => gpioHandler.Write(bottomPin, b);
         }
 
         private void Run()
         {
+            topLed(false);
+            middleLed(false);
+            bottomLed(false);
+
+            //stringWriter = stringWriter.Write("Hello world please work...");
+            stringWriter = stringWriter.Write("");
+
             while (true) { }
         }
 
@@ -46,5 +60,9 @@ namespace immutableSsd
         }
 
         private ISsdWriter<string> stringWriter;
+
+        private Action<bool> topLed;
+        private Action<bool> middleLed;
+        private Action<bool> bottomLed;
     }
 }

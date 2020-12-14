@@ -1,5 +1,5 @@
 ﻿using System;
-namespace immutableSsd.src
+namespace immutableSsd
 {
     public class Step
     {

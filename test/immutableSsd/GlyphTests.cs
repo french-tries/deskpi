@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
-using immutableSsd.src;
+using immutableSsd;
 using NUnit.Framework;
 
 namespace immutableSsd.test

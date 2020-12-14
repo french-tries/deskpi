@@ -1,5 +1,5 @@
 ﻿using System;
-using immutableSsd.src;
+using immutableSsd;
 using NUnit.Framework;
 
 namespace immutableSsd.test

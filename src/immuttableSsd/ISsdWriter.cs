@@ -1,4 +1,4 @@
-﻿namespace immutableSsd.src
+﻿namespace immutableSsd
 {
     public interface ISsdWriter<TPARAM> : IInterruptReceiver<ISsdWriter<TPARAM>>
     {

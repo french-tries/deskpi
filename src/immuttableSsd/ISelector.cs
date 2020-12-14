@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-namespace immutableSsd.src
+namespace immutableSsd
 {
     public interface ISelector<T> : IInterruptReceiver<ISelector<T>>
     {

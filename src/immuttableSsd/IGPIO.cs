@@ -1,5 +1,5 @@
 ﻿using System;
-namespace deskpi.src
+namespace immutableSsd
 {
     public interface IGPIO
     {
