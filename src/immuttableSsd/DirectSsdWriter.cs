@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using piCommon;
 
 namespace immutableSsd
 {
     public class DirectSsdWriter : ISsdWriter<ImmutableList<byte>>
     {
-        public DirectSsdWriter(ImmutableList<Pin> segmentPins, ImmutableList<Pin> digitPins,
-            Action<Pin, bool> writeAction, IInterruptHandler interruptHandler, uint interval) :
+        public DirectSsdWriter(ImmutableList<int> segmentPins, ImmutableList<int> digitPins,
+            Action<int, bool> writeAction, IInterruptHandler interruptHandler, uint interval) :
             this(segmentPins, digitPins, writeAction, interruptHandler, interval, 
                 ImmutableList<byte>.Empty)
         {
         }
 
-        private DirectSsdWriter(ImmutableList<Pin> segmentPins, ImmutableList<Pin> digitPins,
-            Action<Pin, bool> writeAction, IInterruptHandler interruptHandler, uint interval,
+        private DirectSsdWriter(ImmutableList<int> segmentPins, ImmutableList<int> digitPins,
+            Action<int, bool> writeAction, IInterruptHandler interruptHandler, uint interval,
             ImmutableList<byte> values, int currentDigit = 0)
         {
             Debug.Assert(segmentPins.Count == 8);
@@ -77,9 +78,9 @@ namespace immutableSsd
             writeAction(digitPins[currentDigit], true);
         }
 
-        private readonly Action<Pin, bool> writeAction;
-        private readonly ImmutableList<Pin> segmentPins;
-        private readonly ImmutableList<Pin> digitPins;
+        private readonly Action<int, bool> writeAction;
+        private readonly ImmutableList<int> segmentPins;
+        private readonly ImmutableList<int> digitPins;
 
         private readonly ImmutableList<byte> values;
         private readonly IInterruptHandler interruptHandler;

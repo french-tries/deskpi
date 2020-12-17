@@ -1,4 +1,6 @@
-﻿namespace immutableSsd
+﻿using piCommon;
+
+namespace immutableSsd
 {
     public interface ISsdWriter<TPARAM> : IInterruptReceiver<ISsdWriter<TPARAM>>
     {

@@ -2,21 +2,22 @@
 using System.Collections.Immutable;
 using immutableSsd.test.stubs;
 using NUnit.Framework;
+using piCommon;
 
 namespace immutableSsd.test
 {
     class TestGpio
     {
-        public void Write(Pin pin, bool value)
+        public void Write(int pin, bool value)
         {
             written = written.Enqueue((pin, value));
         }
 
         public void TestWritten(int expectedId, bool expectedActive)
         {
-            (Pin pin, bool value) = written.Peek();
+            (int pin, bool value) = written.Peek();
 
-            Assert.AreEqual(expectedId, pin.Id);
+            Assert.AreEqual(expectedId, pin);
             Assert.AreEqual(expectedActive, value);
 
             written = written.Dequeue();
@@ -24,15 +25,15 @@ namespace immutableSsd.test
 
         public void TestEmpty()
         {
-            Assert.AreEqual(ImmutableQueue<(Pin, bool)>.Empty, written);
+            Assert.AreEqual(ImmutableQueue<(int, bool)>.Empty, written);
         }
 
         public void Clear()
         {
-            written = ImmutableQueue<(Pin, bool)>.Empty;
+            written = ImmutableQueue<(int, bool)>.Empty;
         }
 
-        private ImmutableQueue<(Pin, bool)> written = ImmutableQueue<(Pin, bool)>.Empty;
+        private ImmutableQueue<(int, bool)> written = ImmutableQueue<(int, bool)>.Empty;
     }
 
     [TestFixture]
@@ -45,8 +46,8 @@ namespace immutableSsd.test
             var interruptHandler = new InterruptHandlerStub();
 
             var writer = new DirectSsdWriter(
-                ImmutableList<Pin>.Empty.Add(new Pin(0, true)),
-                ImmutableList<Pin>.Empty.Add(new Pin(2, true)).Add(new Pin(3, true)),
+                ImmutableList<int>.Empty.Add(0),
+                ImmutableList<int>.Empty.Add(2).Add(3),
                 gpio.Write, interruptHandler, 1);
 
             gpio.TestWritten(2, false);
@@ -62,8 +63,8 @@ namespace immutableSsd.test
             var interruptHandler = new InterruptHandlerStub();
 
             var writer = new DirectSsdWriter(
-                ImmutableList<Pin>.Empty.Add(new Pin(0, true)),
-                ImmutableList<Pin>.Empty.Add(new Pin(2, true)).Add(new Pin(3, true)),
+                ImmutableList<int>.Empty.Add(0),
+                ImmutableList<int>.Empty.Add(2).Add(3),
                 gpio.Write, interruptHandler, 1);
 
             interruptHandler.TestRequested(writer, 1);
@@ -77,8 +78,8 @@ namespace immutableSsd.test
             var interruptHandler = new InterruptHandlerStub();
 
             ISsdWriter<ImmutableList<byte>> writer = new DirectSsdWriter(
-                ImmutableList<Pin>.Empty.Add(new Pin(0, true)).Add(new Pin(1, true)),
-                ImmutableList<Pin>.Empty.Add(new Pin(2, true)).Add(new Pin(3, true)),
+                ImmutableList<int>.Empty.Add(0).Add(1),
+                ImmutableList<int>.Empty.Add(2).Add(3),
                 gpio.Write, interruptHandler, 1);
 
             gpio.Clear();
@@ -104,8 +105,8 @@ namespace immutableSsd.test
             var interruptHandler = new InterruptHandlerStub();
 
             ISsdWriter<ImmutableList<byte>> writer = new DirectSsdWriter(
-                ImmutableList<Pin>.Empty.Add(new Pin(0, true)).Add(new Pin(1, true)),
-                ImmutableList<Pin>.Empty.Add(new Pin(2, true)).Add(new Pin(3, true)),
+                ImmutableList<int>.Empty.Add(0).Add(1),
+                ImmutableList<int>.Empty.Add(2).Add(3),
                 gpio.Write, interruptHandler, 5);
 
             writer = writer.Write(ImmutableList<byte>.Empty.Add(0b01000000).Add(0b10000000));
@@ -134,8 +135,8 @@ namespace immutableSsd.test
             var interruptHandler = new InterruptHandlerStub();
 
             ISsdWriter<ImmutableList<byte>> writer = new DirectSsdWriter(
-                ImmutableList<Pin>.Empty.Add(new Pin(0, true)).Add(new Pin(1, true)),
-                ImmutableList<Pin>.Empty.Add(new Pin(2, true)).Add(new Pin(3, true)),
+                ImmutableList<int>.Empty.Add(0).Add(1),
+                ImmutableList<int>.Empty.Add(2).Add(3),
                 gpio.Write, interruptHandler, 5);
 
             writer = writer.Write(ImmutableList<byte>.Empty.Add(0b01000000));

@@ -1,5 +1,7 @@
 ﻿using System;
-using immutableSsd;
+using System.Threading;
+using System.Threading.Tasks;
+using piCommon;
 
 namespace immutableSsd
 {
@@ -27,14 +29,28 @@ namespace immutableSsd
 
             stringWriter = new StringSsdWriter(directWriter, converter.GetSegments, selector);
 
-            var topPin = new Pin(2, true);
-            topLed = (b) => gpioHandler.Write(topPin, b);
+            topLed = (b) => gpioHandler.Write(20, b);
+            middleLed = (b) => gpioHandler.Write(16, b);
+            bottomLed = (b) => gpioHandler.Write(17, b);
 
-            var middlePin = new Pin(16, true);
-            middleLed = (b) => gpioHandler.Write(middlePin, b);
+            var topButtonIntHandler = new HackyInterruptHandler(
+                () => gpioHandler.Millis, (c, t) => { topButton = topButton.ReceiveInterrupt(c, t); });
+            topButton = new ImmutableButton(topButtonIntHandler, () => gpioHandler.Read(4), (b) => topLed(!b));
 
-            var bottomPin = new Pin(20, true);
-            bottomLed = (b) => gpioHandler.Write(bottomPin, b);
+            var middleButtonIntHandler = new HackyInterruptHandler(
+                () => gpioHandler.Millis, (c, t) => { middleButton = middleButton.ReceiveInterrupt(c, t); });
+            middleButton = new ImmutableButton(middleButtonIntHandler, () => gpioHandler.Read(3), (b) => middleLed(!b));
+
+            var bottomButtonIntHandler = new HackyInterruptHandler(
+               () => gpioHandler.Millis, (c, t) => { bottomButton = bottomButton.ReceiveInterrupt(c, t); });
+            bottomButton = new ImmutableButton(bottomButtonIntHandler, () => gpioHandler.Read(2), (b) => bottomLed(!b));
+
+            gpioHandler.RegisterInterruptCallback(4,
+                () => { topButton = topButton.OnPinValueChange(); });
+            gpioHandler.RegisterInterruptCallback(3,
+                () => { middleButton = middleButton.OnPinValueChange(); });
+            gpioHandler.RegisterInterruptCallback(2,
+                () => { bottomButton = bottomButton.OnPinValueChange(); });
         }
 
         private void Run()
@@ -43,8 +59,8 @@ namespace immutableSsd
             middleLed(false);
             bottomLed(false);
 
-            //stringWriter = stringWriter.Write("Hello world please work...");
-            stringWriter = stringWriter.Write("");
+            stringWriter = stringWriter.Write("Hello world please work...");
+           // stringWriter = stringWriter.Write("");
 
             while (true) { }
         }
@@ -61,8 +77,12 @@ namespace immutableSsd
 
         private ISsdWriter<string> stringWriter;
 
-        private Action<bool> topLed;
-        private Action<bool> middleLed;
-        private Action<bool> bottomLed;
+        private readonly Action<bool> topLed;
+        private readonly Action<bool> middleLed;
+        private readonly Action<bool> bottomLed;
+
+        private ImmutableButton topButton;
+        private ImmutableButton middleButton;
+        private ImmutableButton bottomButton;
     }
 }

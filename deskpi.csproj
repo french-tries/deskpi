@@ -80,17 +80,11 @@
     <Compile Include="src\immuttableSsd\DirectSsdWriter.cs" />
     <Compile Include="src\immuttableSsd\Glyph.cs" />
     <Compile Include="src\immuttableSsd\GpioHandler.cs" />
-    <Compile Include="src\immuttableSsd\HackyInterruptHandler.cs" />
-    <Compile Include="src\immuttableSsd\IGPIO.cs" />
-    <Compile Include="src\immuttableSsd\IInterruptHandler.cs" />
-    <Compile Include="src\immuttableSsd\IInterruptReceiver.cs" />
     <Compile Include="src\immuttableSsd\ISelector.cs" />
     <Compile Include="src\immuttableSsd\ISsdWriter.cs" />
     <Compile Include="src\immuttableSsd\Max7219CommonAnodeWriter.cs" />
-    <Compile Include="src\immuttableSsd\Pin.cs" />
     <Compile Include="src\immuttableSsd\ScrollingSelector.cs" />
     <Compile Include="src\immuttableSsd\SegmentsConverter.cs" />
-    <Compile Include="src\immuttableSsd\Step.cs" />
     <Compile Include="src\immuttableSsd\StringSsdWriter.cs" />
     <Compile Include="src\immuttableSsd\surplus\ImmutableTimer.cs" />
     <Compile Include="test\immutableSsd\DirectSsdWriterTests.cs" />
@@ -102,6 +96,11 @@
     <Compile Include="test\immutableSsd\stubs\InterruptHandlerStub.cs" />
     <Compile Include="test\immutableSsd\stubs\SelectorStub.cs" />
     <Compile Include="test\immutableSsd\stubs\SsdWriterStub.cs" />
+    <Compile Include="src\piCommon\ImmutableButton.cs" />
+    <Compile Include="test\piCommon\ImmutableButtonTests.cs" />
+    <Compile Include="src\piCommon\HackyInterruptHandler.cs" />
+    <Compile Include="src\piCommon\IInterruptReceiver.cs" />
+    <Compile Include="src\piCommon\IInterruptHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -110,7 +109,8 @@
   <ItemGroup>
     <Folder Include="src\" />
     <Folder Include="test\" />
-    <Folder Include="src\common\" />
+    <Folder Include="src\piCommon\" />
+    <Folder Include="test\piCommon\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

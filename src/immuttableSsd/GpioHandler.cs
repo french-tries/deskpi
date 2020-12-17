@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unosquare.RaspberryIO;
 using Unosquare.RaspberryIO.Abstractions;
 using Unosquare.WiringPi;
@@ -10,21 +11,45 @@ namespace immutableSsd
         public GpioHandler()
         {
             Pi.Init<BootstrapWiringPi>();
-            pins = new Dictionary<Pin, IGpioPin>();
+            pins = new Dictionary<int, GpioPinDriveMode>();
 
             Pi.Spi.Channel0Frequency = SpiChannel.MinFrequency;
         }
 
-        public void Write(Pin pin, bool value)
+        // TODO EdgeDetection?
+        public void RegisterInterruptCallback(int pinId, Action callback,
+            EdgeDetection mode = EdgeDetection.FallingAndRisingEdge)
         {
-            if (!pins.ContainsKey(pin))
+            var pin = Pi.Gpio[pinId];
+            if (!pins.ContainsKey(pinId) || pins[pinId] != GpioPinDriveMode.Input)
             {
-                var gpioPin = Pi.Gpio[pin.Id];
-                gpioPin.PinMode = GpioPinDriveMode.Output;
-
-                pins.Add(pin, gpioPin);
+                pins[pinId] = GpioPinDriveMode.Input;
+                pin.PinMode = GpioPinDriveMode.Input;
+                pin.InputPullMode = GpioPinResistorPullMode.PullUp;
             }
-            pins[pin].Write(value == pin.ActiveHigh);
+            pin.RegisterInterruptCallback(mode, callback);
+        }
+
+        public void Write(int pinId, bool value, bool activeHigh = true)
+        {
+            var pin = Pi.Gpio[pinId];
+            if (!pins.ContainsKey(pinId) || pins[pinId] != GpioPinDriveMode.Output)
+            {
+                pins[pinId] = GpioPinDriveMode.Output;
+                pin.PinMode = GpioPinDriveMode.Output;
+            }
+            pin.Write(value == activeHigh);
+        }
+
+        public bool Read(int pinId)
+        {
+            var pin = Pi.Gpio[pinId];
+            if (!pins.ContainsKey(pinId) || pins[pinId] != GpioPinDriveMode.Input)
+            {
+                pins[pinId] = GpioPinDriveMode.Input;
+                pin.PinMode = GpioPinDriveMode.Input;
+            }
+            return pin.Read();
         }
 
         public byte[] SpiWrite(byte[] buffer) =>
@@ -43,6 +68,6 @@ namespace immutableSsd
             Pi.Timing.SleepMicroseconds(micros);
         }
 
-        private readonly Dictionary<Pin, IGpioPin> pins;
+        private readonly Dictionary<int, GpioPinDriveMode> pins;
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-namespace immutableSsd
+namespace piCommon
 {
     public interface IInterruptReceiver<T>
     {
