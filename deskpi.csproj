@@ -39,7 +39,7 @@
       <HintPath>..\packages\Unosquare.Raspberry.Abstractions.0.4.1\lib\netstandard2.0\Unosquare.Raspberry.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Swan.Lite">
-      <HintPath>..\packages\Unosquare.Swan.Lite.3.0.0\lib\net461\Swan.Lite.dll</HintPath>
+      <HintPath>..\packages\Unosquare.Swan.Lite.3.1.0\lib\net461\Swan.Lite.dll</HintPath>
     </Reference>
     <Reference Include="Swan">
       <HintPath>..\packages\Unosquare.Swan.3.0.0\lib\net461\Swan.dll</HintPath>
@@ -61,17 +61,20 @@
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.5.0.0\lib\net45\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Memory">
       <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Collections.Immutable">
-      <HintPath>..\packages\System.Collections.Immutable.1.7.1\lib\net461\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\packages\System.Collections.Immutable.5.0.0\lib\net461\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.3.12.0\lib\net45\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Optional">
+      <HintPath>..\packages\Optional.4.0.0\lib\net45\Optional.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -101,6 +104,10 @@
     <Compile Include="src\piCommon\HackyInterruptHandler.cs" />
     <Compile Include="src\piCommon\IInterruptReceiver.cs" />
     <Compile Include="src\piCommon\IInterruptHandler.cs" />
+    <Compile Include="src\deskpi\ocarinaSelector\OcarinaSelector.cs" />
+    <Compile Include="src\deskpi\ocarinaSelector\SongsTrie.cs" />
+    <Compile Include="src\deskpi\ocarinaSelector\Songs.cs" />
+    <Compile Include="src\deskpi\ButtonAggregator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -111,6 +118,8 @@
     <Folder Include="test\" />
     <Folder Include="src\piCommon\" />
     <Folder Include="test\piCommon\" />
+    <Folder Include="src\deskpi\" />
+    <Folder Include="src\deskpi\ocarinaSelector\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
