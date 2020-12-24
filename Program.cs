@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -66,11 +67,11 @@ namespace immutableSsd
             var buttonAggregator = new ButtonAggregator((obj) => {
                 if (KeyToNote.ContainsKey(obj))
                     ocarinaSelector = ocarinaSelector.ReceiveNote(KeyToNote[obj]);
-                });
+            });
 
             var topButtonIntHandler = new HackyInterruptHandler(
                 () => gpioHandler.Millis, (c, t) => { topButton = topButton.ReceiveInterrupt(c, t); });
-            topButton = new ImmutableButton(topButtonIntHandler, () => gpioHandler.Read(4), 
+            topButton = new ImmutableButton(topButtonIntHandler, () => gpioHandler.Read(4),
                 (b) => {
                     topLed(!b);
                     buttonAggregator = buttonAggregator.OnButtonUpdate(Button.Top, !b);
@@ -78,7 +79,7 @@ namespace immutableSsd
 
             var middleButtonIntHandler = new HackyInterruptHandler(
                 () => gpioHandler.Millis, (c, t) => { middleButton = middleButton.ReceiveInterrupt(c, t); });
-            middleButton = new ImmutableButton(middleButtonIntHandler, () => gpioHandler.Read(3), 
+            middleButton = new ImmutableButton(middleButtonIntHandler, () => gpioHandler.Read(3),
                 (b) => {
                     middleLed(!b);
                     buttonAggregator = buttonAggregator.OnButtonUpdate(Button.Middle, !b);
@@ -91,13 +92,13 @@ namespace immutableSsd
                     bottomLed(!b);
                     buttonAggregator = buttonAggregator.OnButtonUpdate(Button.Bottom, !b);
                 });
-
+                
             gpioHandler.RegisterInterruptCallback(4,
-                () => { topButton = topButton.OnPinValueChange(); });
+                () => events.Enqueue(() => { topButton = topButton.OnPinValueChange(); }) );
             gpioHandler.RegisterInterruptCallback(3,
-                () => { middleButton = middleButton.OnPinValueChange(); });
+                () => events.Enqueue(() => { middleButton = middleButton.OnPinValueChange(); }));
             gpioHandler.RegisterInterruptCallback(2,
-                () => { bottomButton = bottomButton.OnPinValueChange(); });
+                () => events.Enqueue(() => { bottomButton = bottomButton.OnPinValueChange(); }));
         }
 
         private void Run()
@@ -108,7 +109,13 @@ namespace immutableSsd
 
             stringWriter = stringWriter.Write("Hello world please work...");
 
-            while (true) { }
+            while (true)
+            {
+                if (events.TryDequeue(out Action ev))
+                {
+                    ev();
+                }
+            }
         }
 
         // TODO if raised before construction is completed, events are lost
@@ -133,6 +140,6 @@ namespace immutableSsd
 
         private OcarinaSelector ocarinaSelector;
 
-        //private ImmutableQueue<Action> events;
+        private ConcurrentQueue<Action> events = new ConcurrentQueue<Action>();
     }
 }
