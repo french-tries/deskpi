@@ -2,9 +2,10 @@
 
 namespace immutableSsd
 {
-    public interface ISsdWriter<TPARAM> : IInterruptReceiver<ISsdWriter<TPARAM>>
+    public interface ISsdWriter<TPARAM>
     {
         int AvailableDigits { get; }
         ISsdWriter<TPARAM> Write(TPARAM values);
+        ISsdWriter<TPARAM> ReceiveInterrupt(object caller);
     }
 }

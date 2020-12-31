@@ -13,8 +13,7 @@ namespace immutableSsd.test
         [TestCase]
         public void GetSelected_Empty_ReturnsEmpty()
         {
-            var interruptHandler = new InterruptHandlerStub();
-            var selector = new ScrollingSelector<int>(interruptHandler, 1, 2,1);
+            var selector = new ScrollingSelector<int>((arg1, arg2) => () => { }, 1, 2,1);
 
             Assert.AreEqual(ImmutableList<int>.Empty, selector.GetSelected());
         }
@@ -22,7 +21,6 @@ namespace immutableSsd.test
         [TestCase]
         public void GetSelected_AtStart_ReturnsWithoutOffset()
         {
-            var interruptHandler = new InterruptHandlerStub();
             var text = ImmutableList<char>.Empty.Add('a')
                 .Add('b');
 
@@ -30,7 +28,7 @@ namespace immutableSsd.test
             uint endsDelay = 2;
 
             var selector = new ScrollingSelector<char>(
-                interruptHandler, delay, endsDelay, 3).UpdateValues(text);
+                (arg1, arg2) => () => { }, delay, endsDelay, 3).UpdateValues(text);
 
             Assert.AreEqual(text, selector.GetSelected());
         }
@@ -38,26 +36,26 @@ namespace immutableSsd.test
         [TestCase]
         public void UpdateValue_UnrequestOldInterrupt()
         {
-            var interruptHandler = new InterruptHandlerStub();
             var text = ImmutableList<char>.Empty.Add('a')
                 .Add('b');
 
             uint delay = 1;
             uint endsDelay = 2;
 
+            int calls = 0;
             var selector = new ScrollingSelector<char>(
-                interruptHandler, delay, endsDelay, 3);
+                (arg1, arg2) => () => { calls++; }, delay, endsDelay, 1).UpdateValues(text);
 
-            var newSelector = selector.UpdateValues(text);
+            var newText = ImmutableList<char>.Empty.Add('a')
+                .Add('b').Add('c');
+            var newSelector = selector.UpdateValues(newText);
 
-            interruptHandler.TestUnrequested(selector);
-            interruptHandler.TestUnrequestedEmpty();
+            Assert.AreEqual(1, calls);
         }
 
         [TestCase]
         public void GetGlyph_PartialDisplay_ReturnsSubList()
         {
-            var interruptHandler = new InterruptHandlerStub();
             var text = ImmutableList<char>.Empty.Add('a')
                 .Add('b').Add('c');
 
@@ -65,7 +63,7 @@ namespace immutableSsd.test
             uint endsDelay = 2;
 
             var selector = new ScrollingSelector<char>(
-                interruptHandler, delay, endsDelay, 2).UpdateValues(text);
+                (arg1, arg2) => () => { }, delay, endsDelay, 2).UpdateValues(text);
 
             Assert.True(text.GetRange(0,2).SequenceEqual(selector.GetSelected()));
         }
@@ -73,36 +71,38 @@ namespace immutableSsd.test
         [TestCase]
         public void GetGlyph_WithDelay_ReturnsWithOffset()
         {
-            var interruptHandler = new InterruptHandlerStub();
             var text = ImmutableList<char>.Empty.Add('a')
                 .Add('b').Add('c');
 
             uint delay = 1;
             uint endsDelay = 2;
 
+            object receivedCaller = null;
+            uint receivedDelay = 0;
             var selector = new ScrollingSelector<char>(
-                interruptHandler, delay, endsDelay, 1).UpdateValues(text);
+                (arg1, arg2) => { receivedCaller = arg1; receivedDelay = arg2; return() => { }; },
+                delay, endsDelay, 1).UpdateValues(text);
 
-            interruptHandler.TestRequested(selector, 2);
-            interruptHandler.TestRequestedEmpty();
+            Assert.AreEqual(selector, receivedCaller);
+            Assert.AreEqual(2, receivedDelay);
 
-            selector = selector.ReceiveInterrupt(selector, 2);
+            selector = selector.ReceiveInterrupt(selector);
 
             Assert.True(text.GetRange(1, 1).SequenceEqual(selector.GetSelected()));
-            interruptHandler.TestRequested(selector, 1);
-            interruptHandler.TestRequestedEmpty();
+            Assert.AreEqual(selector, receivedCaller);
+            Assert.AreEqual(1, receivedDelay);
 
-            selector = selector.ReceiveInterrupt(selector, 3);
+            selector = selector.ReceiveInterrupt(selector);
 
             Assert.True(text.GetRange(2, 1).SequenceEqual(selector.GetSelected()));
-            interruptHandler.TestRequested(selector, 2);
-            interruptHandler.TestRequestedEmpty();
+            Assert.AreEqual(selector, receivedCaller);
+            Assert.AreEqual(2, receivedDelay);
 
-            selector = selector.ReceiveInterrupt(selector, 5);
+            selector = selector.ReceiveInterrupt(selector);
 
             Assert.True(text.GetRange(0, 1).SequenceEqual(selector.GetSelected()));
-            interruptHandler.TestRequested(selector, 2);
-            interruptHandler.TestRequestedEmpty();
+            Assert.AreEqual(selector, receivedCaller);
+            Assert.AreEqual(2, receivedDelay);
         }
     }
 }

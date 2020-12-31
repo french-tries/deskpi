@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Immutable;
-using immutableSsd;
+﻿using System.Collections.Immutable;
 
-namespace deskpi.test.stubs
+namespace immutableSsd.test.stubs
 {
     public class SelectorStub<T> : ISelector<T>
     {
@@ -14,7 +12,7 @@ namespace deskpi.test.stubs
             return this;
         }
 
-        public ISelector<T> ReceiveInterrupt(object caller, uint currentTime)
+        public ISelector<T> ReceiveInterrupt(object caller)
         {
             if (CreateNew)
             {

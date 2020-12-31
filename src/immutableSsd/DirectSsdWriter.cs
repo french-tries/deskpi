@@ -8,14 +8,14 @@ namespace immutableSsd
     public class DirectSsdWriter : ISsdWriter<ImmutableList<byte>>
     {
         public DirectSsdWriter(ImmutableList<int> segmentPins, ImmutableList<int> digitPins,
-            Action<int, bool> writeAction, IInterruptHandler interruptHandler, uint interval) :
-            this(segmentPins, digitPins, writeAction, interruptHandler, interval, 
+            Action<int, bool> writeAction, Func<object, uint, Action> requestInterrupt, uint interval) :
+            this(segmentPins, digitPins, writeAction, requestInterrupt, interval, 
                 ImmutableList<byte>.Empty)
         {
         }
 
         private DirectSsdWriter(ImmutableList<int> segmentPins, ImmutableList<int> digitPins,
-            Action<int, bool> writeAction, IInterruptHandler interruptHandler, uint interval,
+            Action<int, bool> writeAction, Func<object, uint, Action> requestInterrupt, uint interval,
             ImmutableList<byte> values, int currentDigit = 0)
         {
             Debug.Assert(segmentPins.Count == 8);
@@ -23,19 +23,19 @@ namespace immutableSsd
             this.segmentPins = segmentPins;
             this.digitPins = digitPins;
             this.writeAction = writeAction;
-            this.interruptHandler = interruptHandler;
+            this.requestInterrupt = requestInterrupt;
             this.interval = interval;
             this.values = values;
             this.currentDigit = currentDigit;
 
             Write();
-            interruptHandler.RequestInterrupt(this, interval);
+            requestInterrupt(this, interval);
         }
 
         public ISsdWriter<ImmutableList<byte>> Write(ImmutableList<byte> newValues) =>
-            new DirectSsdWriter(segmentPins, digitPins, writeAction, interruptHandler, interval, newValues);
+            new DirectSsdWriter(segmentPins, digitPins, writeAction, requestInterrupt, interval, newValues);
 
-        public ISsdWriter<ImmutableList<byte>> ReceiveInterrupt(object caller, uint currentTime)
+        public ISsdWriter<ImmutableList<byte>> ReceiveInterrupt(object caller)
         {
             if (caller == this && caller is DirectSsdWriter writer)
             {
@@ -43,7 +43,7 @@ namespace immutableSsd
                 if (nextDigit >= digitPins.Count) nextDigit = 0;
 
                 return new DirectSsdWriter(segmentPins, digitPins, writeAction,
-                    interruptHandler, interval, values, nextDigit);
+                    requestInterrupt, interval, values, nextDigit);
             }
             return this;
         }
@@ -83,7 +83,7 @@ namespace immutableSsd
         private readonly ImmutableList<int> digitPins;
 
         private readonly ImmutableList<byte> values;
-        private readonly IInterruptHandler interruptHandler;
+        private readonly Func<object, uint, Action> requestInterrupt;
         private readonly int currentDigit;
         private readonly uint interval;
     }

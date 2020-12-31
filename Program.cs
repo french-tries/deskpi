@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using deskpi;
 using deskpi.src.deskpi.ocarinaSelector;
 using piCommon;
@@ -27,11 +25,8 @@ namespace immutableSsd
 
             var converter = new SegmentsConverter();
 
-            var selectorIntHandler = new HackyInterruptHandler(
-                () => gpioHandler.Millis, ReceiveInterrupt);
-
             var selector = new ScrollingSelector<byte>(
-                selectorIntHandler, 1000, 2000, 8);
+                InterruptHandler.RequestInterrupt(ReceiveInterrupt), 1000, 2000, 8);
 
             stringWriter = new StringSsdWriter(directWriter, converter.GetSegments, selector);
 
@@ -69,36 +64,37 @@ namespace immutableSsd
                     ocarinaSelector = ocarinaSelector.ReceiveNote(KeyToNote[obj]);
             });
 
-            var topButtonIntHandler = new HackyInterruptHandler(
-                () => gpioHandler.Millis, (c, t) => { topButton = topButton.ReceiveInterrupt(c, t); });
-            topButton = new ImmutableButton(topButtonIntHandler, () => gpioHandler.Read(4),
+            topButton = new ImmutableButton(
+                InterruptHandler.RequestInterrupt((c) => { topButton = topButton.ReceiveInterrupt(c); }),
+                () => gpioHandler.Read(4),
                 (b) => {
                     topLed(!b);
                     buttonAggregator = buttonAggregator.OnButtonUpdate(Button.Top, !b);
                 });
-
-            var middleButtonIntHandler = new HackyInterruptHandler(
-                () => gpioHandler.Millis, (c, t) => { middleButton = middleButton.ReceiveInterrupt(c, t); });
-            middleButton = new ImmutableButton(middleButtonIntHandler, () => gpioHandler.Read(3),
+                
+            middleButton = new ImmutableButton(
+                InterruptHandler.RequestInterrupt((c) => { middleButton = middleButton.ReceiveInterrupt(c); }),
+                () => gpioHandler.Read(3),
                 (b) => {
                     middleLed(!b);
                     buttonAggregator = buttonAggregator.OnButtonUpdate(Button.Middle, !b);
                 });
 
-            var bottomButtonIntHandler = new HackyInterruptHandler(
-               () => gpioHandler.Millis, (c, t) => { bottomButton = bottomButton.ReceiveInterrupt(c, t); });
-            bottomButton = new ImmutableButton(bottomButtonIntHandler, () => gpioHandler.Read(2),
+            bottomButton = new ImmutableButton(
+                InterruptHandler.RequestInterrupt((c) => { bottomButton = bottomButton.ReceiveInterrupt(c); }),
+                () => gpioHandler.Read(2),
                 (b) => {
                     bottomLed(!b);
                     buttonAggregator = buttonAggregator.OnButtonUpdate(Button.Bottom, !b);
                 });
-                
+
             gpioHandler.RegisterInterruptCallback(4,
-                () => events.Enqueue(() => { topButton = topButton.OnPinValueChange(); }) );
+                () => events.Enqueue(() => { topButton = topButton.OnPinValueChange(); }));
             gpioHandler.RegisterInterruptCallback(3,
                 () => events.Enqueue(() => { middleButton = middleButton.OnPinValueChange(); }));
             gpioHandler.RegisterInterruptCallback(2,
                 () => events.Enqueue(() => { bottomButton = bottomButton.OnPinValueChange(); }));
+
         }
 
         private void Run()
@@ -120,11 +116,11 @@ namespace immutableSsd
 
         // TODO if raised before construction is completed, events are lost
         // TODO stop / restart program ?
-        private void ReceiveInterrupt(object caller, uint currentTime)
+        private void ReceiveInterrupt(object caller)
         {
             if (stringWriter != null)
             {
-                stringWriter = stringWriter.ReceiveInterrupt(caller, currentTime);
+                stringWriter = stringWriter.ReceiveInterrupt(caller);
             }
         }
 

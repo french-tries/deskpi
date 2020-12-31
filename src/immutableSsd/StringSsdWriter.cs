@@ -25,13 +25,13 @@ namespace immutableSsd
             return new StringSsdWriter(newWriter, converter, newSelector);
         }
 
-        public ISsdWriter<string> ReceiveInterrupt(object caller, uint currentTime)
+        public ISsdWriter<string> ReceiveInterrupt(object caller)
         {
-            var newSelector = selector.ReceiveInterrupt(caller, currentTime);
+            var newSelector = selector.ReceiveInterrupt(caller);
 
             var newWriter = (selector != newSelector) ?
                 writer.Write(newSelector.GetSelected()):
-                writer.ReceiveInterrupt(caller, currentTime);
+                writer.ReceiveInterrupt(caller);
 
             if (selector != newSelector || newWriter != writer)
             {

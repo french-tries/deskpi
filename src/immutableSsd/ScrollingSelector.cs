@@ -7,18 +7,18 @@ namespace immutableSsd
 {
     public class ScrollingSelector<T> : ISelector<T>
     {
-        public ScrollingSelector(IInterruptHandler handler, 
+        public ScrollingSelector(Func<object, uint, Action> requestInterrupt, 
             uint delay, uint endsDelay, uint availableDigits) : 
-            this(handler, delay, endsDelay, availableDigits, ImmutableList<T>.Empty, 0)
+            this(requestInterrupt, delay, endsDelay, availableDigits, ImmutableList<T>.Empty, 0)
         {
         }
 
-        private ScrollingSelector(IInterruptHandler handler, uint delay,
+        private ScrollingSelector(Func<object, uint, Action> requestInterrupt, uint delay,
             uint endsDelay, uint availableDigits, ImmutableList<T> values, int offset)
         {
             Debug.Assert(availableDigits > 0);
 
-            this.handler = handler;
+            this.requestInterrupt = requestInterrupt;
             this.delay = delay;
             this.endsDelay = endsDelay;
             this.availableDigits = availableDigits;
@@ -32,15 +32,15 @@ namespace immutableSsd
                 {
                     currentDelay = endsDelay;
                 }
-                handler.RequestInterrupt(this, currentDelay);
+                cancelInterrupt = requestInterrupt(this, currentDelay);
             }
         }
 
         public ISelector<T> UpdateValues(ImmutableList<T> newValues)
         {
-            handler.UnrequestInterrupt(this);
+            cancelInterrupt?.Invoke();
             return new ScrollingSelector<T>(
-                handler, delay, endsDelay, availableDigits, newValues, 0);
+                requestInterrupt, delay, endsDelay, availableDigits, newValues, 0);
         }
 
         public ImmutableList<T> GetSelected()
@@ -52,22 +52,24 @@ namespace immutableSsd
                 Math.Min((int)availableDigits, values.Count - offset));
         }
 
-        public ISelector<T> ReceiveInterrupt(object caller, uint currentTime)
+        public ISelector<T> ReceiveInterrupt(object caller)
         {
             if (caller == this && caller is ScrollingSelector<T> selector)
             {
                 return new ScrollingSelector<T>(
-                    handler, delay, endsDelay, availableDigits, values,
+                    requestInterrupt, delay, endsDelay, availableDigits, values,
                     offset >= values.Count - availableDigits ? 0 : offset + 1);
             }
             return this;
         }
 
-        private readonly IInterruptHandler handler;
+        private readonly Func<object, uint, Action> requestInterrupt;
         private readonly uint delay;
         private readonly uint endsDelay;
         private readonly uint availableDigits;
         private readonly ImmutableList<T> values;
         private readonly int offset;
+
+        private readonly Action cancelInterrupt;
     }
 }

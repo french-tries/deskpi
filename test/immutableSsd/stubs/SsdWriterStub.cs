@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
-using immutableSsd;
 using NUnit.Framework;
 
-namespace deskpi.test.stubs
+namespace immutableSsd.test.stubs
 {
     public class SsdWriterStub<T> : ISsdWriter<ImmutableList<T>>
     {
@@ -27,22 +26,22 @@ namespace deskpi.test.stubs
             Assert.IsNull(LastValues);
         }
 
-        public void TestTime(int expected)
+        public void TestCaller(object expected)
         {
-            if (lastTime == null)
+            if (lastCaller == null)
             {
                 Assert.Fail();
             }
             else
             {
-                Assert.AreEqual(expected, lastTime);
+                Assert.AreEqual(expected, lastCaller);
             }
         }
 
         public void Reset()
         {
             LastValues = null;
-            lastTime = null;
+            lastCaller = null;
         }
 
         public ISsdWriter<ImmutableList<T>> Write(ImmutableList<T> values)
@@ -51,13 +50,13 @@ namespace deskpi.test.stubs
             return this;
         }
 
-        public ISsdWriter<ImmutableList<T>> ReceiveInterrupt(object caller, uint currentTime)
+        public ISsdWriter<ImmutableList<T>> ReceiveInterrupt(object caller)
         {
-            lastTime = currentTime;
+            lastCaller = caller;
             return this;
         }
 
         public ImmutableList<T> LastValues { get; private set; }
-        private uint? lastTime;
+        private object lastCaller;
     }
 }

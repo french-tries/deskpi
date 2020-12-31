@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
-using deskpi.test.stubs;
-using immutableSsd;
+using immutableSsd.test.stubs;
 using NUnit.Framework;
 
 namespace immutableSsd.test
@@ -38,7 +37,7 @@ namespace immutableSsd.test
             testWriter.Reset();
             testSelector.CreateNew = true;
 
-            stringWriter = stringWriter.ReceiveInterrupt(testSelector, 9);
+            stringWriter = stringWriter.ReceiveInterrupt(testSelector);
 
             testWriter.TestValues(ImmutableList<byte>.Empty
                 .Add((byte)'1').Add((byte)'2').Add((byte)'3'));
@@ -57,10 +56,10 @@ namespace immutableSsd.test
 
             testWriter.Reset();
 
-            stringWriter = stringWriter.ReceiveInterrupt(testWriter, 9);
+            stringWriter = stringWriter.ReceiveInterrupt(testWriter);
 
             testWriter.TestUnwritten();
-            testWriter.TestTime(9);
+            testWriter.TestCaller(testWriter);
         }
     }
 }

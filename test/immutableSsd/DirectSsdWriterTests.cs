@@ -43,12 +43,10 @@ namespace immutableSsd.test
         public void Creation_Expects_WriteZerosToAllPins()
         {
             var gpio = new TestGpio();
-            var interruptHandler = new InterruptHandlerStub();
-
             var writer = new DirectSsdWriter(
                 ImmutableList<int>.Empty.Add(0),
                 ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write, interruptHandler, 1);
+                gpio.Write, (arg1, arg2) => () => { }, 1);
 
             gpio.TestWritten(2, false);
             gpio.TestWritten(3, false);
@@ -60,27 +58,30 @@ namespace immutableSsd.test
         public void Creation_Expects_RequestInterrupt()
         {
             var gpio = new TestGpio();
-            var interruptHandler = new InterruptHandlerStub();
+
+            object receivedCaller = null;
+            uint receivedDelay = 0;
 
             var writer = new DirectSsdWriter(
                 ImmutableList<int>.Empty.Add(0),
                 ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write, interruptHandler, 1);
+                gpio.Write,
+                (arg1, arg2) => { receivedCaller = arg1; receivedDelay = arg2; return () => { }; },
+                1);
 
-            interruptHandler.TestRequested(writer, 1);
-            interruptHandler.TestRequestedEmpty();
+            Assert.AreEqual(writer, receivedCaller);
+            Assert.AreEqual(1, receivedDelay);
         }
 
         [TestCase]
         public void Write_Expects_Written()
         {
             var gpio = new TestGpio();
-            var interruptHandler = new InterruptHandlerStub();
 
             ISsdWriter<ImmutableList<byte>> writer = new DirectSsdWriter(
                 ImmutableList<int>.Empty.Add(0).Add(1),
                 ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write, interruptHandler, 1);
+                gpio.Write, (arg1, arg2) => () => { }, 1);
 
             gpio.Clear();
 
@@ -102,25 +103,24 @@ namespace immutableSsd.test
                 0b10000000
             };
             var gpio = new TestGpio();
-            var interruptHandler = new InterruptHandlerStub();
 
             ISsdWriter<ImmutableList<byte>> writer = new DirectSsdWriter(
                 ImmutableList<int>.Empty.Add(0).Add(1),
                 ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write, interruptHandler, 5);
+                gpio.Write, (arg1, arg2) => () => { }, 5);
 
             writer = writer.Write(ImmutableList<byte>.Empty.Add(0b01000000).Add(0b10000000));
 
             gpio.Clear();
 
-            writer = writer.ReceiveInterrupt(writer, 5);
+            writer = writer.ReceiveInterrupt(writer);
             gpio.TestWritten(2, false);
             gpio.TestWritten(0, true);
             gpio.TestWritten(1, false);
             gpio.TestWritten(3, true);
             gpio.TestEmpty();
 
-            writer = writer.ReceiveInterrupt(writer, 10);
+            writer = writer.ReceiveInterrupt(writer);
             gpio.TestWritten(3, false);
             gpio.TestWritten(0, false);
             gpio.TestWritten(1, true);
@@ -132,25 +132,24 @@ namespace immutableSsd.test
        public void WriteSteps_WhenSmallerValuesSize_ClearSteps()
        {
             var gpio = new TestGpio();
-            var interruptHandler = new InterruptHandlerStub();
 
             ISsdWriter<ImmutableList<byte>> writer = new DirectSsdWriter(
                 ImmutableList<int>.Empty.Add(0).Add(1),
                 ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write, interruptHandler, 5);
+                gpio.Write, (arg1, arg2) => () => { }, 5);
 
             writer = writer.Write(ImmutableList<byte>.Empty.Add(0b01000000));
 
             gpio.Clear();
 
-            writer = writer.ReceiveInterrupt(writer, 5);
+            writer = writer.ReceiveInterrupt(writer);
             gpio.TestWritten(2, false);
             gpio.TestWritten(3, false);
             gpio.TestWritten(0, false);
             gpio.TestWritten(1, false);
             gpio.TestEmpty();
 
-            writer = writer.ReceiveInterrupt(writer, 10);
+            writer = writer.ReceiveInterrupt(writer);
             gpio.TestWritten(3, false);
             gpio.TestWritten(0, false);
             gpio.TestWritten(1, true);
