@@ -60,7 +60,7 @@ namespace deskpi
             var modes = new Dictionary<Mode, IDeskPiMode>{
                 { Mode.Dummy1, new DummyMode(Song.ZeldasLullaby) },
                 { Mode.Dummy2, new DummyMode(Song.EponasSong) },
-                { Mode.Dummy3, new DummyMode(Song.SariasSong) },
+                { Mode.Help, new DummyMode(Song.SariasSong) },
                 { Mode.Dummy4, new DummyMode(Song.SunsSong) },
                 { Mode.Dummy5, new DummyMode(Song.SongOfTime) },
                 { Mode.Dummy6, new DummyMode(Song.SongOfStorms) },
@@ -76,7 +76,7 @@ namespace deskpi
             var songTrie = new Trie<Note,Mode>()
                 .Insert(Song.ZeldasLullaby.Notes, Mode.Dummy1)
                 .Insert(Song.EponasSong.Notes, Mode.Dummy2)
-                .Insert(Song.SariasSong.Notes, Mode.Dummy3)
+                .Insert(Song.SariasSong.Notes, Mode.Help)
                 .Insert(Song.SunsSong.Notes, Mode.Dummy4)
                 .Insert(Song.SongOfTime.Notes, Mode.Dummy5)
                 .Insert(Song.SongOfStorms.Notes, Mode.Dummy6)
@@ -88,6 +88,7 @@ namespace deskpi
                 .Insert(Song.PreludeOfLight.Notes, Mode.Dummy12)
                 .Insert(Song.ScarecrowsSong.Notes, Mode.Dummy13);
 
+            // TODO use enum values?
             var keyToNote = new Dictionary<Key, Note>{
                 { Key.A, Note.Bottom },
                 { Key.B, Note.Right },
@@ -96,7 +97,7 @@ namespace deskpi
                 { Key.E, Note.Top }
             }.ToImmutableDictionary();
 
-            ocarinaSelector = new OcarinaSelector(songTrie, keyToNote, Mode.Selector, modes);
+            ocarinaSelector = new OcarinaSelector(songTrie, keyToNote, Mode.Help, modes);
 
             void topLed(bool b) => gpioHandler.Write(20, b);
             void middleLed(bool b) => gpioHandler.Write(16, b);
@@ -114,7 +115,7 @@ namespace deskpi
             middleLed(false);
             bottomLed(false);
 
-            stringWriter = stringWriter.Write("Hello world please work...");
+            stringWriter = stringWriter.Write(ocarinaSelector.Text);
         }
 
         private DeskPi(DeskPi source,
@@ -146,6 +147,7 @@ namespace deskpi
                     if (topButton == topButtonN && middleButton == middleButtonN && 
                         bottomButton == bottomButtonN && stringWriter == stringWriterN)
                     {
+                        // TODO sometimes happens
                         Console.WriteLine($"Unrecognized TimerEvent with caller {te.Caller}");
                         return this;
                     }
@@ -181,7 +183,6 @@ namespace deskpi
             }
         }
 
-        // TODO pin id, button in button object?
         private static ImmutableButton SetupButton(Action<object> pushEvent,
             GpioHandler gpioHandler, Action<bool> led, int pin, Button button)
         {

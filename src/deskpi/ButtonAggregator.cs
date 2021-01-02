@@ -38,9 +38,6 @@ namespace deskpi
             }
             if (!previouslyReleased)
             {
-                Console.WriteLine(buttonsToKey[(pressed.Contains(Button.Bottom),
-                    pressed.Contains(Button.Middle), pressed.Contains(Button.Top))]);
-
                 onKeyPressed(buttonsToKey[(pressed.Contains(Button.Bottom), 
                     pressed.Contains(Button.Middle), pressed.Contains(Button.Top))]);
             }

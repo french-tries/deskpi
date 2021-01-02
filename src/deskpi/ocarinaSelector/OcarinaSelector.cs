@@ -1,11 +1,12 @@
 ﻿using System.Collections.Immutable;
+using System.Linq;
 using Optional;
 
 namespace deskpi.ocarinaSelector
 {
     public enum Mode
     {
-        Selector, Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7,
+        Selector, Dummy1, Dummy2, Help, Dummy4, Dummy5, Dummy6, Dummy7,
         Dummy8, Dummy9, Dummy10, Dummy11, Dummy12, Dummy13
     }
 
@@ -55,11 +56,11 @@ namespace deskpi.ocarinaSelector
                 return this;
             }
             var newNotes = receivedNotes;
-            if (receivedNotes.Count >= 8)
+            if (newNotes.Count >= 8)
             {
-                newNotes = receivedNotes.GetRange(0, 7);
+                newNotes = newNotes.GetRange(0, 7);
             }
-            newNotes = receivedNotes.Insert(0, keyToNote[key]);
+            newNotes = newNotes.Insert(0, keyToNote[key]);
 
             Option<Mode> modeN = songTrie.Find(newNotes);
 
@@ -77,9 +78,26 @@ namespace deskpi.ocarinaSelector
 
         public string Text {
             get {
-                if (mode == Mode.Selector) return "Hello world please work...";
+                if (mode == Mode.Selector)
+                {
+                    return receivedNotes.Aggregate(
+                        "", (text, note) =>  NoteToChar(note) + text);
+                }
                 return innerModes[mode].Text;
             }
+        }
+
+        private static char NoteToChar(Note note)
+        {
+            switch (note)
+            {
+                case Note.Left: return '\u02C2';
+                case Note.Right: return '\u02C3';
+                case Note.Top: return '\u02C4';
+                case Note.Bottom: return '\u02C5';
+                case Note.A: return 'A';
+            }
+            return ' ';
         }
 
         private readonly Trie<Note, Mode> songTrie;
@@ -88,5 +106,7 @@ namespace deskpi.ocarinaSelector
 
         private readonly Mode mode;
         private readonly ImmutableDictionary<Mode, IDeskPiMode> innerModes;
+
+
     }
 }

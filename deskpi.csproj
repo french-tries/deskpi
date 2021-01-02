@@ -109,6 +109,7 @@
     <Compile Include="src\immutableSsd\ImmutableSsd.cs" />
     <Compile Include="src\deskpi\IDeskPiMode.cs" />
     <Compile Include="src\deskpi\DummyMode.cs" />
+    <Compile Include="src\deskpi\HelpMode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
