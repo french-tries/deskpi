@@ -4,11 +4,12 @@ using System.Collections.Immutable;
 
 namespace deskpi
 {
+    public enum Button { Bottom, Middle, Top }
+    public enum Key { A, B, C, D, E, F, G }
+
+    // TODO own buttons to reduce events ?
     public class ButtonAggregator
     {
-        public enum Button { Bottom, Middle, Top }
-        public enum Key { A, B, C, D, E, F, G }
-
         public ButtonAggregator(Action<Key> onKeyPressed) : 
             this(onKeyPressed, ImmutableSortedSet<Button>.Empty)
         {
@@ -37,6 +38,9 @@ namespace deskpi
             }
             if (!previouslyReleased)
             {
+                Console.WriteLine(buttonsToKey[(pressed.Contains(Button.Bottom),
+                    pressed.Contains(Button.Middle), pressed.Contains(Button.Top))]);
+
                 onKeyPressed(buttonsToKey[(pressed.Contains(Button.Bottom), 
                     pressed.Contains(Button.Middle), pressed.Contains(Button.Top))]);
             }

@@ -102,11 +102,13 @@
     <Compile Include="test\piCommon\ImmutableButtonTests.cs" />
     <Compile Include="src\piCommon\InterruptHandler.cs" />
     <Compile Include="src\deskpi\ocarinaSelector\OcarinaSelector.cs" />
-    <Compile Include="src\deskpi\ocarinaSelector\SongsTrie.cs" />
-    <Compile Include="src\deskpi\ocarinaSelector\Songs.cs" />
+    <Compile Include="src\deskpi\ocarinaSelector\Trie.cs" />
+    <Compile Include="src\deskpi\ocarinaSelector\Song.cs" />
     <Compile Include="src\deskpi\ButtonAggregator.cs" />
     <Compile Include="src\deskpi\DeskPi.cs" />
     <Compile Include="src\immutableSsd\ImmutableSsd.cs" />
+    <Compile Include="src\deskpi\IDeskPiMode.cs" />
+    <Compile Include="src\deskpi\DummyMode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

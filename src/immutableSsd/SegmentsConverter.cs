@@ -45,7 +45,11 @@ namespace immutableSsd
                 { '9', 0b11100110 },
                 { '\'', 0b01000000 },
                 { '-', 0b00000010 },
-                { ' ', 0b00000000 }
+                { '\u02C2', 0b10000110 }, // left arrow
+                { '\u02C3', 0b11000010 }, // right arrow
+                { '\u02C4', 0b11000100 }, // top arrow
+                { '\u02C5', 0b01000110 }, // bottom arrow
+                { ' ', 0b00000000 },
                 }.ToImmutableDictionary();
 
         public SegmentsConverter()
