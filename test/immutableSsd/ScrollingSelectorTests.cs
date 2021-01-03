@@ -13,7 +13,8 @@ namespace immutableSsd.test
         [TestCase]
         public void GetSelected_Empty_ReturnsEmpty()
         {
-            var selector = new ScrollingSelector<int>((arg1, arg2) => () => { }, 1, 2,1);
+            var selector = new ScrollingSelector<int>((arg1, arg2) => () => { },
+                1, 2, 1, ImmutableList<int>.Empty);
 
             Assert.AreEqual(ImmutableList<int>.Empty, selector.GetSelected());
         }
@@ -28,29 +29,9 @@ namespace immutableSsd.test
             uint endsDelay = 2;
 
             var selector = new ScrollingSelector<char>(
-                (arg1, arg2) => () => { }, delay, endsDelay, 3).UpdateValues(text);
+                (arg1, arg2) => () => { }, delay, endsDelay, 3, text);
 
             Assert.AreEqual(text, selector.GetSelected());
-        }
-
-        [TestCase]
-        public void UpdateValue_UnrequestOldInterrupt()
-        {
-            var text = ImmutableList<char>.Empty.Add('a')
-                .Add('b');
-
-            uint delay = 1;
-            uint endsDelay = 2;
-
-            int calls = 0;
-            var selector = new ScrollingSelector<char>(
-                (arg1, arg2) => () => { calls++; }, delay, endsDelay, 1).UpdateValues(text);
-
-            var newText = ImmutableList<char>.Empty.Add('a')
-                .Add('b').Add('c');
-            var newSelector = selector.UpdateValues(newText);
-
-            Assert.AreEqual(1, calls);
         }
 
         [TestCase]
@@ -63,7 +44,7 @@ namespace immutableSsd.test
             uint endsDelay = 2;
 
             var selector = new ScrollingSelector<char>(
-                (arg1, arg2) => () => { }, delay, endsDelay, 2).UpdateValues(text);
+                (arg1, arg2) => () => { }, delay, endsDelay, 2, text);
 
             Assert.True(text.GetRange(0,2).SequenceEqual(selector.GetSelected()));
         }
@@ -79,9 +60,9 @@ namespace immutableSsd.test
 
             object receivedCaller = null;
             uint receivedDelay = 0;
-            var selector = new ScrollingSelector<char>(
+            ISelector<char> selector = new ScrollingSelector<char>(
                 (arg1, arg2) => { receivedCaller = arg1; receivedDelay = arg2; return() => { }; },
-                delay, endsDelay, 1).UpdateValues(text);
+                delay, endsDelay, 1, text);
 
             Assert.AreEqual(selector, receivedCaller);
             Assert.AreEqual(2, receivedDelay);

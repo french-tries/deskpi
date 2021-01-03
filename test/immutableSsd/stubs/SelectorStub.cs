@@ -4,19 +4,23 @@ namespace immutableSsd.test.stubs
 {
     public class SelectorStub<T> : ISelector<T>
     {
-        public ImmutableList<T> GetSelected() => text;
-
-        public ISelector<T> UpdateValues(ImmutableList<T> newValues)
+        public SelectorStub()
+            : this(ImmutableList<T>.Empty)
         {
-            this.text = newValues;
-            return this;
         }
+
+        public SelectorStub(ImmutableList<T> text)
+        {
+            this.Text = text;
+        }
+
+        public ImmutableList<T> GetSelected() => Text;
 
         public ISelector<T> ReceiveInterrupt(object caller)
         {
             if (CreateNew)
             {
-                newInstance.text = text;
+                newInstance.Text = Text;
                 return newInstance;
             }
             return this;
@@ -24,7 +28,7 @@ namespace immutableSsd.test.stubs
 
         public bool CreateNew { get; set; }
 
-        private ImmutableList<T> text;
+        public ImmutableList<T> Text { get; set; }
 
         private static SelectorStub<T> newInstance = new SelectorStub<T>();
     }

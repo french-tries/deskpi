@@ -11,13 +11,44 @@ namespace immutableSsd.test
         public void WriteString_Writes()
         {
             var testWriter = new SsdWriterStub<byte>();
-            var testSelector = new SelectorStub<byte>();
             var stringWriter = new StringSsdWriter(testWriter,
-                (Glyph g) => (byte)g.Character, testSelector);
+                (Glyph g) => (byte)g.Character, 
+                (arg1, arg2) => new SelectorStub<byte>(arg1));
 
             var str = "123";
-            testSelector.CreateNew = true;
             var tickable = stringWriter.Write(str);
+
+            testWriter.TestValues(ImmutableList<byte>.Empty
+                .Add((byte)'1').Add((byte)'2').Add((byte)'3'));
+        }
+
+        [TestCase]
+        public void Write_MultipleStrings_Writes()
+        {
+            var testWriter = new SsdWriterStub<byte>();
+            var stringWriter = new StringSsdWriter(testWriter,
+                (Glyph g) => (byte)g.Character,
+                (arg1, arg2) => new SelectorStub<byte>(arg1));
+
+            var strs = ImmutableList<(string, uint)>.Empty
+                .Add(("1", 1)).Add(("2", 1)).Add(("3", 1));
+            var tickable = stringWriter.Write(strs);
+
+            testWriter.TestValues(ImmutableList<byte>.Empty
+                .Add((byte)'1').Add((byte)'2').Add((byte)'3'));
+        }
+
+        [TestCase]
+        public void Write_NotEnoughSpace_WritesFirsts()
+        {
+            var testWriter = new SsdWriterStub<byte>();
+            var stringWriter = new StringSsdWriter(testWriter,
+                (Glyph g) => (byte)g.Character,
+                (arg1, arg2) => new SelectorStub<byte>(arg1));
+
+            var strs = ImmutableList<(string, uint)>.Empty
+                .Add(("1", 1)).Add(("2", 1)).Add(("3", 1)).Add(("4", 1));
+            var tickable = stringWriter.Write(strs);
 
             testWriter.TestValues(ImmutableList<byte>.Empty
                 .Add((byte)'1').Add((byte)'2').Add((byte)'3'));
@@ -29,7 +60,8 @@ namespace immutableSsd.test
             var testWriter = new SsdWriterStub<byte>();
             var testSelector = new SelectorStub<byte>();
             ISsdWriter<string> stringWriter = new StringSsdWriter(testWriter,
-                (Glyph g) => (byte)g.Character, testSelector);
+                (Glyph g) => (byte)g.Character,
+                (arg1, arg2) => {testSelector.Text = arg1; return testSelector; });
 
             var str = "123";
             var tickable = stringWriter.Write(str);
@@ -47,9 +79,9 @@ namespace immutableSsd.test
         public void ReceiveInterrupt_onWriter_ReceivesIt()
         {
             var testWriter = new SsdWriterStub<byte>();
-            var testSelector = new SelectorStub<byte>();
             ISsdWriter<string> stringWriter = new StringSsdWriter(testWriter,
-                (Glyph g) => (byte)g.Character, testSelector);
+                (Glyph g) => (byte)g.Character,
+                (arg1, arg2) => new SelectorStub<byte>(arg1));
 
             var str = "123";
             var tickable = stringWriter.Write(str);

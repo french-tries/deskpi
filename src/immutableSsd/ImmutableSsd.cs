@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using piCommon;
 
 namespace immutableSsd
@@ -7,16 +8,16 @@ namespace immutableSsd
     {
         public static StringSsdWriter CreateMax7219BackedDisplay(
             GpioHandler gpioHandler, Func<object, uint, Action> requestInterrupt,
-            uint numDigits = 8, uint scrollDelay = 1000, uint endsScrollDelay = 2000)
+            uint scrollDelay = 1000, uint endsScrollDelay = 2000)
         {
             var directWriter = new Max7219CommonAnodeWriter((obj) => gpioHandler.SpiWrite(obj));
 
             var converter = new SegmentsConverter();
 
-            var selector = new ScrollingSelector<byte>(
-                requestInterrupt, scrollDelay, endsScrollDelay, numDigits);
+            ISelector<byte> createSelector(ImmutableList<byte> text, uint availableDigits) =>
+                new ScrollingSelector<byte>(requestInterrupt, scrollDelay, endsScrollDelay, availableDigits, text);
 
-            return new StringSsdWriter(directWriter, converter.GetSegments, selector);
+            return new StringSsdWriter(directWriter, converter.GetSegments, createSelector);
         }
     }
 }

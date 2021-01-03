@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace immutableSsd
 {
@@ -6,44 +8,96 @@ namespace immutableSsd
     {
         public delegate byte GlyphToSegments(Glyph glyph);
 
-        public StringSsdWriter(ISsdWriter<ImmutableList<byte>> writer, GlyphToSegments converter,
-            ISelector<byte> selector)
+        public StringSsdWriter(ISsdWriter<ImmutableList<byte>> writer, 
+            GlyphToSegments converter,
+            Func<ImmutableList<byte>, uint, ISelector<byte>> createSelector)
+            : this(writer, converter, createSelector, 
+                ImmutableList<ISelector<byte>>.Empty
+                    .Add(createSelector(ImmutableList<byte>.Empty, writer.AvailableDigits)))
+        {
+        }
+
+        private StringSsdWriter(ISsdWriter<ImmutableList<byte>> writer, GlyphToSegments converter,
+            Func<ImmutableList<byte>, uint, ISelector<byte>> createSelector, ImmutableList<ISelector<byte>> selectors)
         {
             this.writer = writer;
             this.converter = converter;
-            this.selector = selector;
+            this.createSelector = createSelector;
+            this.selectors = selectors;
         }
+
+        private ImmutableList<byte> ConcatSelected(ImmutableList<ISelector<byte>> sels) =>
+            sels.Aggregate(ImmutableList<byte>.Empty, 
+                (result, selector) => result.Concat(selector.GetSelected()).ToImmutableList()
+        );
 
         public ISsdWriter<string> Write(string text)
         {
             var newValues = Glyph.FromString(text).ConvertAll((g) => converter(g));
 
-            var newSelector = selector.UpdateValues(newValues);
+            var newSelectors = ImmutableList<ISelector<byte>>.Empty
+                .Add(createSelector(newValues, writer.AvailableDigits));
 
-            var newWriter = writer.Write(newSelector.GetSelected());
+            var newWriter = writer.Write(ConcatSelected(newSelectors));
 
-            return new StringSsdWriter(newWriter, converter, newSelector);
+            return new StringSsdWriter(newWriter, converter, createSelector, newSelectors);
+        }
+
+        public ISsdWriter<string> Write(ImmutableList<(string, uint)> texts)
+        {
+            var newSelectors = ImmutableList<ISelector<byte>>.Empty;
+            var availableDigits = writer.AvailableDigits;
+
+            foreach ((string text, uint digits) in texts)
+            {
+                if (digits == 0) continue;
+
+                var newValues = Glyph.FromString(text).ConvertAll((g) => converter(g));
+                var minAvailable = Math.Min(availableDigits, digits);
+
+                newSelectors = newSelectors.Add(createSelector(newValues, minAvailable));
+
+                availableDigits -= minAvailable;
+
+                if (availableDigits <= 0) break;
+            }
+
+            var newWriter = writer.Write(ConcatSelected(newSelectors));
+
+            return new StringSsdWriter(newWriter, converter, createSelector, newSelectors);
         }
 
         public ISsdWriter<string> ReceiveInterrupt(object caller)
         {
-            var newSelector = selector.ReceiveInterrupt(caller);
+            // todo non O(N^2) way
 
-            var newWriter = (selector != newSelector) ?
-                writer.Write(newSelector.GetSelected()):
+            var newSelectors = selectors;
+            foreach (ISelector<byte> selector in selectors)
+            {
+                var newSelector = selector.ReceiveInterrupt(caller);
+                if (selector != newSelector)
+                {
+                    newSelectors = newSelectors.Replace(selector, newSelector);
+                }
+            }
+
+            var newWriter = (selectors != newSelectors) ?
+                writer.Write(ConcatSelected(newSelectors)) :
                 writer.ReceiveInterrupt(caller);
 
-            if (selector != newSelector || newWriter != writer)
+            if (selectors != newSelectors || newWriter != writer)
             {
-                return new StringSsdWriter(newWriter, converter, newSelector);
+                return new StringSsdWriter(newWriter, converter, createSelector, newSelectors);
             }
             return this;
         }
 
-        public int AvailableDigits => writer.AvailableDigits;
+        public uint AvailableDigits => writer.AvailableDigits;
 
         private readonly ISsdWriter<ImmutableList<byte>> writer;
         private readonly GlyphToSegments converter;
-        private readonly ISelector<byte> selector;
+        private readonly Func<ImmutableList<byte>, uint, ISelector<byte>> createSelector;
+
+        private readonly ImmutableList<ISelector<byte>> selectors;
     }
 }

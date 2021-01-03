@@ -72,7 +72,7 @@ namespace immutableSsd
             }
         }
 
-        public int AvailableDigits => 8;
+        public uint AvailableDigits => 8;
 
         public ISsdWriter<ImmutableList<byte>> Write(ImmutableList<byte> values)
         {

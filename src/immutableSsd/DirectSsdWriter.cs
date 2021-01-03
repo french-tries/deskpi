@@ -48,7 +48,7 @@ namespace immutableSsd
             return this;
         }
 
-        public int AvailableDigits => digitPins.Count;
+        public uint AvailableDigits => (uint)digitPins.Count;
 
         private void Clear()
         {

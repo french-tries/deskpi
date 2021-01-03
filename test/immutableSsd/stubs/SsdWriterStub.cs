@@ -7,7 +7,7 @@ namespace immutableSsd.test.stubs
 {
     public class SsdWriterStub<T> : ISsdWriter<ImmutableList<T>>
     {
-        public int AvailableDigits => 3;
+        public uint AvailableDigits => 3;
 
         public void TestValues(ImmutableList<T> expected)
         {

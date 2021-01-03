@@ -5,11 +5,12 @@ using piCommon;
 
 namespace immutableSsd
 {
+    // @todo cancel interrupt on updated values, dispose ???
     public class ScrollingSelector<T> : ISelector<T>
     {
         public ScrollingSelector(Func<object, uint, Action> requestInterrupt, 
-            uint delay, uint endsDelay, uint availableDigits) : 
-            this(requestInterrupt, delay, endsDelay, availableDigits, ImmutableList<T>.Empty, 0)
+            uint delay, uint endsDelay, uint availableDigits, ImmutableList<T> values) : 
+            this(requestInterrupt, delay, endsDelay, availableDigits, values, 0)
         {
         }
 
@@ -34,13 +35,6 @@ namespace immutableSsd
                 }
                 cancelInterrupt = requestInterrupt(this, currentDelay);
             }
-        }
-
-        public ISelector<T> UpdateValues(ImmutableList<T> newValues)
-        {
-            cancelInterrupt?.Invoke();
-            return new ScrollingSelector<T>(
-                requestInterrupt, delay, endsDelay, availableDigits, newValues, 0);
         }
 
         public ImmutableList<T> GetSelected()
