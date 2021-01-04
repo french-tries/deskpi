@@ -51,7 +51,7 @@ namespace deskpi
                 { Mode.Dummy13, new DummyMode(Song.ScarecrowsSong) },
             }.ToImmutableDictionary();
 
-            var songTrie = new Trie<Note,Mode>()
+            var songTrie = new Trie<Note, Mode>()
                 .Insert(Song.ZeldasLullaby.Notes, Mode.Dummy1)
                 .Insert(Song.EponasSong.Notes, Mode.Dummy2)
                 .Insert(Song.SariasSong.Notes, Mode.Help)
@@ -97,30 +97,29 @@ namespace deskpi
 
             Console.WriteLine("Start");
         }
-         
-        private StringSsdWriter Write(TextValue value)
-        {
-            switch (value)
-            {
-                case SimpleTextValue stv :
-                    return stringWriter.Write(stv.Value);
-                case ComplexTextValue ctv:
-                    return stringWriter.Write(ctv.Values);
-            }
-            return stringWriter;
-        }
 
         private DeskPi(DeskPi source,
             StringSsdWriter stringWriter = null,
             ButtonAggregator buttonAggregator = null,
-            ImmutableButton topButton = null,
-            ImmutableButton middleButton = null,
-            ImmutableButton bottomButton = null,
             IDeskPiMode ocarinaSelector = null)
         {
             this.stringWriter = stringWriter ?? source.stringWriter;
             this.buttonAggregator = buttonAggregator ?? source.buttonAggregator;
             this.ocarinaSelector = ocarinaSelector ?? source.ocarinaSelector;
+        }
+
+        public DeskPi ReceiveEvent(object ev)
+        {
+            switch (ev)
+            {
+                case TimerEvent te:
+                    return ReceiveEvent(te);
+                case PinValueChangeEvent pvce:
+                    return ReceiveEvent(pvce);
+                default:
+                    Console.WriteLine($"Unrecognized event {ev}");
+                    return this;
+            }
         }
 
         private DeskPi ReceiveEvent(TimerEvent te)
@@ -154,18 +153,16 @@ namespace deskpi
             return new DeskPi(this, buttonAggregator: buttonAggregator.OnPinValueChange(pvce.Button));
         }
 
-        public DeskPi ReceiveEvent(object ev)
+        private StringSsdWriter Write(TextValue value)
         {
-            switch (ev)
+            switch (value)
             {
-                case TimerEvent te:
-                    return ReceiveEvent(te);
-                case PinValueChangeEvent pvce:
-                    return ReceiveEvent(pvce);
-                default:
-                    Console.WriteLine($"Unrecognized event {ev}");
-                    return this;
+                case SimpleTextValue stv:
+                    return stringWriter.Write(stv.Value);
+                case ComplexTextValue ctv:
+                    return stringWriter.Write(ctv.Values);
             }
+            return stringWriter;
         }
 
         private static ImmutableButton SetupButton(Action<object> pushEvent,
