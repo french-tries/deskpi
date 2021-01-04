@@ -10,7 +10,7 @@ namespace deskpi
             this.song = song;
         }
 
-        public string Text => song.Name;
+        public TextValue Text => new SimpleTextValue(song.Name);
 
         public IDeskPiMode ReceiveKey(Key key) => this;
 

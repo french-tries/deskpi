@@ -1,7 +1,9 @@
-﻿using piCommon;
+﻿using System.Collections.Immutable;
+using piCommon;
 
 namespace immutableSsd
 {
+    // todo ishh...
     public interface ISsdWriter<TPARAM>
     {
         uint AvailableDigits { get; }

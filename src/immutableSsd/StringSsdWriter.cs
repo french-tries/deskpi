@@ -4,7 +4,8 @@ using System.Linq;
 
 namespace immutableSsd
 {
-    public class StringSsdWriter : ISsdWriter<string>
+    // todo check interfaces everywhere
+    public class StringSsdWriter
     {
         public delegate byte GlyphToSegments(Glyph glyph);
 
@@ -31,7 +32,7 @@ namespace immutableSsd
                 (result, selector) => result.Concat(selector.GetSelected()).ToImmutableList()
         );
 
-        public ISsdWriter<string> Write(string text)
+        public StringSsdWriter Write(string text)
         {
             var newValues = Glyph.FromString(text).ConvertAll((g) => converter(g));
 
@@ -43,17 +44,17 @@ namespace immutableSsd
             return new StringSsdWriter(newWriter, converter, createSelector, newSelectors);
         }
 
-        public ISsdWriter<string> Write(ImmutableList<(string, uint)> texts)
+        // todo would be more useful with fractions of total digits...
+        public StringSsdWriter Write(ImmutableList<(string, uint)> texts)
         {
             var newSelectors = ImmutableList<ISelector<byte>>.Empty;
             var availableDigits = writer.AvailableDigits;
 
             foreach ((string text, uint digits) in texts)
             {
-                if (digits == 0) continue;
-
                 var newValues = Glyph.FromString(text).ConvertAll((g) => converter(g));
-                var minAvailable = Math.Min(availableDigits, digits);
+
+                var minAvailable = Math.Min(availableDigits, digits == 0 ? (uint)newValues.Count : digits);
 
                 newSelectors = newSelectors.Add(createSelector(newValues, minAvailable));
 
@@ -67,7 +68,7 @@ namespace immutableSsd
             return new StringSsdWriter(newWriter, converter, createSelector, newSelectors);
         }
 
-        public ISsdWriter<string> ReceiveInterrupt(object caller)
+        public StringSsdWriter ReceiveInterrupt(object caller)
         {
             // todo non O(N^2) way
 

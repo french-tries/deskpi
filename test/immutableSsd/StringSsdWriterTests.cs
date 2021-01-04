@@ -59,7 +59,7 @@ namespace immutableSsd.test
         {
             var testWriter = new SsdWriterStub<byte>();
             var testSelector = new SelectorStub<byte>();
-            ISsdWriter<string> stringWriter = new StringSsdWriter(testWriter,
+            var stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character,
                 (arg1, arg2) => {testSelector.Text = arg1; return testSelector; });
 
@@ -79,7 +79,7 @@ namespace immutableSsd.test
         public void ReceiveInterrupt_onWriter_ReceivesIt()
         {
             var testWriter = new SsdWriterStub<byte>();
-            ISsdWriter<string> stringWriter = new StringSsdWriter(testWriter,
+            var stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character,
                 (arg1, arg2) => new SelectorStub<byte>(arg1));
 

@@ -60,7 +60,7 @@ namespace deskpi
             var modes = new Dictionary<Mode, IDeskPiMode>{
                 { Mode.Dummy1, new DummyMode(Song.ZeldasLullaby) },
                 { Mode.Dummy2, new DummyMode(Song.EponasSong) },
-                { Mode.Help, new DummyMode(Song.SariasSong) },
+                { Mode.Help, new HelpMode() },
                 { Mode.Dummy4, new DummyMode(Song.SunsSong) },
                 { Mode.Dummy5, new DummyMode(Song.SongOfTime) },
                 { Mode.Dummy6, new DummyMode(Song.SongOfStorms) },
@@ -115,11 +115,23 @@ namespace deskpi
             middleLed(false);
             bottomLed(false);
 
-            stringWriter = stringWriter.Write(ocarinaSelector.Text);
+            stringWriter = Write(ocarinaSelector.Text);
+        }
+         
+        private StringSsdWriter Write(TextValue value)
+        {
+            switch (value)
+            {
+                case SimpleTextValue stv :
+                    return stringWriter.Write(stv.Value);
+                case ComplexTextValue ctv:
+                    return stringWriter.Write(ctv.Values);
+            }
+            return stringWriter;
         }
 
         private DeskPi(DeskPi source,
-            ISsdWriter<string> stringWriter = null,
+            StringSsdWriter stringWriter = null,
             ButtonAggregator buttonAggregator = null,
             ImmutableButton topButton = null,
             ImmutableButton middleButton = null,
@@ -175,7 +187,7 @@ namespace deskpi
                     var ocarinaSelectorN = ocarinaSelector.ReceiveKey(ke.Key);
 
                     return new DeskPi(this, ocarinaSelector: ocarinaSelectorN,
-                        stringWriter: stringWriter.Write(ocarinaSelectorN.Text));
+                        stringWriter: stringWriter = Write(ocarinaSelectorN.Text));
 
                 default:
                     Console.WriteLine($"Unrecognized event {ev}");
@@ -199,7 +211,7 @@ namespace deskpi
             return result;
         }
 
-        private ISsdWriter<string> stringWriter;
+        private StringSsdWriter stringWriter;
 
         private readonly ButtonAggregator buttonAggregator;
 

@@ -76,12 +76,12 @@ namespace deskpi.ocarinaSelector
                 });
         }
 
-        public string Text {
+        public TextValue Text {
             get {
                 if (mode == Mode.Selector)
                 {
-                    return receivedNotes.Aggregate(
-                        "", (text, note) =>  NoteToChar(note) + text);
+                    return new SimpleTextValue(receivedNotes.Aggregate(
+                        "", (text, note) =>  NoteToChar(note) + text));
                 }
                 return innerModes[mode].Text;
             }
