@@ -11,7 +11,7 @@ namespace deskpi
 
         TextValue IDeskPiMode.Text => new ComplexTextValue(
             ImmutableList<(string, uint)>.Empty
-            .Add(("Help mode", 4)).Add(("Add content...", 4)));
+            .Add(("Bye", 4)).Add(("Bye", 4)));
 
         public IDeskPiMode ReceiveKey(Key key)
         {

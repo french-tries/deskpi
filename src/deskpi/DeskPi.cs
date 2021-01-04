@@ -27,28 +27,6 @@ namespace deskpi
         }
     }
 
-    public class ButtonEvent
-    {
-        public Button Source { get; }
-        public bool Rising { get; }
-
-        public ButtonEvent(Button Source, bool Rising)
-        {
-            this.Source = Source;
-            this.Rising = Rising;
-        }
-    }
-
-    public class KeyEvent
-    {
-        public Key Key { get; }
-
-        public KeyEvent(Key Key)
-        {
-            this.Key = Key;
-        }
-    }
-
     public class DeskPi
     {
         public DeskPi(GpioHandler gpioHandler, Action<object> pushEvent)
@@ -103,11 +81,11 @@ namespace deskpi
             void middleLed(bool b) => gpioHandler.Write(16, b);
             void bottomLed(bool b) => gpioHandler.Write(17, b);
 
-            buttonAggregator = new ButtonAggregator((obj) => pushEvent(new KeyEvent(obj)));
+            var topButton = SetupButton(pushEvent, gpioHandler, topLed, 4, Button.Top);
+            var middleButton = SetupButton(pushEvent, gpioHandler, middleLed, 3, Button.Middle);
+            var bottomButton = SetupButton(pushEvent, gpioHandler, bottomLed, 2, Button.Bottom);
 
-            topButton = SetupButton(pushEvent, gpioHandler, topLed, 4, Button.Top);
-            middleButton = SetupButton(pushEvent, gpioHandler, middleLed, 3, Button.Middle);
-            bottomButton = SetupButton(pushEvent, gpioHandler, bottomLed, 2, Button.Bottom);
+            buttonAggregator = new ButtonAggregator(topButton, middleButton, bottomButton);
 
             //////////////////////////////
 
@@ -116,6 +94,8 @@ namespace deskpi
             bottomLed(false);
 
             stringWriter = Write(ocarinaSelector.Text);
+
+            Console.WriteLine("Start");
         }
          
         private StringSsdWriter Write(TextValue value)
@@ -140,10 +120,38 @@ namespace deskpi
         {
             this.stringWriter = stringWriter ?? source.stringWriter;
             this.buttonAggregator = buttonAggregator ?? source.buttonAggregator;
-            this.topButton = topButton ?? source.topButton;
-            this.middleButton = middleButton ?? source.middleButton;
-            this.bottomButton = bottomButton ?? source.bottomButton;
             this.ocarinaSelector = ocarinaSelector ?? source.ocarinaSelector;
+        }
+
+        private DeskPi ReceiveEvent(TimerEvent te)
+        {
+            var buttonAggregatorN = buttonAggregator.ReceiveInterrupt(te.Caller);
+            var ocarinaSelectorN = ocarinaSelector;
+            var stringWriterN = stringWriter;
+
+            if (buttonAggregatorN == buttonAggregator)
+            {
+                stringWriterN = stringWriter.ReceiveInterrupt(te.Caller);
+            }
+            else if (buttonAggregator.KeyState != buttonAggregatorN.KeyState)
+            {
+                ocarinaSelectorN = ocarinaSelector.ReceiveKey(buttonAggregatorN.KeyState);
+                stringWriterN = Write(ocarinaSelectorN.Text);
+            }
+
+            if (buttonAggregatorN == buttonAggregator && stringWriter == stringWriterN)
+            {
+                // TODO sometimes happens
+                Console.WriteLine($"Unrecognized TimerEvent with caller {te.Caller}");
+                return this;
+            }
+            return new DeskPi(this, buttonAggregator: buttonAggregatorN,
+                ocarinaSelector : ocarinaSelectorN, stringWriter : stringWriterN);
+        }
+
+        private DeskPi ReceiveEvent(PinValueChangeEvent pvce)
+        {
+            return new DeskPi(this, buttonAggregator: buttonAggregator.OnPinValueChange(pvce.Button));
         }
 
         public DeskPi ReceiveEvent(object ev)
@@ -151,44 +159,9 @@ namespace deskpi
             switch (ev)
             {
                 case TimerEvent te:
-                    var topButtonN = topButton.ReceiveInterrupt(te.Caller);
-                    var middleButtonN = middleButton.ReceiveInterrupt(te.Caller);
-                    var bottomButtonN = bottomButton.ReceiveInterrupt(te.Caller);
-                    var stringWriterN = stringWriter.ReceiveInterrupt(te.Caller);
-
-                    if (topButton == topButtonN && middleButton == middleButtonN && 
-                        bottomButton == bottomButtonN && stringWriter == stringWriterN)
-                    {
-                        // TODO sometimes happens
-                        Console.WriteLine($"Unrecognized TimerEvent with caller {te.Caller}");
-                        return this;
-                    }
-                    return new DeskPi(this, topButton: topButtonN, 
-                        middleButton: middleButtonN, bottomButton: bottomButtonN,
-                        stringWriter: stringWriterN);
-
+                    return ReceiveEvent(te);
                 case PinValueChangeEvent pvce:
-                    switch (pvce.Button)
-                    {
-                        case Button.Top:
-                            return new DeskPi(this, topButton : topButton.OnPinValueChange());
-                        case Button.Middle:
-                            return new DeskPi(this, middleButton: middleButton.OnPinValueChange());
-                        case Button.Bottom:
-                            return new DeskPi(this, bottomButton: bottomButton.OnPinValueChange());
-                        default:
-                            Console.WriteLine($"Unrecognized PinValueChangeEvent with button {pvce.Button}");
-                            return this;
-                    }
-                case ButtonEvent be:
-                    return new DeskPi(this, buttonAggregator : buttonAggregator.OnButtonUpdate(be.Source, !be.Rising));
-
-                case KeyEvent ke:
-                    var ocarinaSelectorN = ocarinaSelector.ReceiveKey(ke.Key);
-
-                    return new DeskPi(this, ocarinaSelector: ocarinaSelectorN,
-                        stringWriter: stringWriter = Write(ocarinaSelectorN.Text));
-
+                    return ReceiveEvent(pvce);
                 default:
                     Console.WriteLine($"Unrecognized event {ev}");
                     return this;
@@ -199,26 +172,18 @@ namespace deskpi
             GpioHandler gpioHandler, Action<bool> led, int pin, Button button)
         {
             var result = new ImmutableButton(
-                InterruptHandler.RequestInterrupt((c) => { pushEvent(new TimerEvent(c)); }),
-                () => gpioHandler.Read(pin),
-                (b) => {
-                    led(!b);
-                    pushEvent(new ButtonEvent(button, b));
-                });
+                InterruptHandler.RequestInterrupt(
+                    (c) => { pushEvent(new TimerEvent(c)); }),
+                () => !gpioHandler.Read(pin), led);
             gpioHandler.RegisterInterruptCallback(pin,
-                () => pushEvent(new PinValueChangeEvent(button)));
-
+                () => {
+                    pushEvent(new PinValueChangeEvent(button));
+                });
             return result;
         }
 
-        private StringSsdWriter stringWriter;
-
+        private readonly StringSsdWriter stringWriter;
         private readonly ButtonAggregator buttonAggregator;
-
-        private readonly ImmutableButton topButton;
-        private readonly ImmutableButton middleButton;
-        private readonly ImmutableButton bottomButton;
-
         private readonly IDeskPiMode ocarinaSelector;
     }
 }

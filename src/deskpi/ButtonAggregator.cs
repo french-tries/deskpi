@@ -1,62 +1,92 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using piCommon;
 
 namespace deskpi
 {
     public enum Button { Bottom, Middle, Top }
-    public enum Key { A, B, C, D, E, F, G }
+    public enum Key { None, A, B, C, D, E, F, G }
 
-    // TODO own buttons to reduce events ?
     public class ButtonAggregator
     {
-        public ButtonAggregator(Action<Key> onKeyPressed) : 
-            this(onKeyPressed, ImmutableSortedSet<Button>.Empty)
+        public ButtonAggregator(ImmutableButton top, ImmutableButton middle,
+            ImmutableButton bottom)
         {
+            this.buttons = new Dictionary<Button, ImmutableButton> {
+                {Button.Top, top},
+                {Button.Middle, middle},
+                {Button.Bottom, bottom}
+            }.ToImmutableDictionary();
+
+            this.KeyState = Key.None;
+    }
+
+        private ButtonAggregator(ButtonAggregator source, 
+            ImmutableDictionary<Button, ImmutableButton> buttons = null,
+            Key? Pressed = null, bool? previouslyReleased = null)
+        {
+            this.buttons = buttons ?? source.buttons;
+            this.KeyState = Pressed ?? source.KeyState;
+            this.previouslyReleased = previouslyReleased ?? source.previouslyReleased;
         }
 
-        private ButtonAggregator(Action<Key> onKeyPressed, ImmutableSortedSet<Button> pressed,
-            bool previouslyReleased = false)
+        private static int CountPressed(ImmutableDictionary<Button, ImmutableButton> buttons) => 
+            buttons.Values.Aggregate(0, (count, button) => button.Pressed ? count + 1 : count);
+
+        public ButtonAggregator ReceiveInterrupt(object caller)
         {
-            this.onKeyPressed = onKeyPressed;
-            this.pressed = pressed;
-            this.previouslyReleased = previouslyReleased;
-        }
+            var updated = from entry in buttons 
+                let newVal = entry.Value.ReceiveInterrupt(caller)
+                where newVal != entry.Value
+                select new KeyValuePair<Button, ImmutableButton>(entry.Key, newVal);
 
-
-        public ButtonAggregator OnButtonUpdate(Button id, bool pressing)
-        {
-            if (pressing)
-            {
-                if (pressed.Contains(id)) return this;
-
-                return new ButtonAggregator(onKeyPressed, pressed.Add(id), false);
-            }
-            if (!pressed.Contains(id))
+            if (!updated.Any())
             {
                 return this;
             }
+            var buttonsN = buttons.SetItems(updated);
+
+            if (CountPressed(buttons) <= CountPressed(buttonsN))
+            {
+                return new ButtonAggregator(this, buttonsN, Key.None, false);
+            }
             if (!previouslyReleased)
             {
-                onKeyPressed(buttonsToKey[(pressed.Contains(Button.Bottom), 
-                    pressed.Contains(Button.Middle), pressed.Contains(Button.Top))]);
+                return new ButtonAggregator(this, buttonsN,
+                    buttonsToKey[(buttons[Button.Top].Pressed, 
+                    buttons[Button.Middle].Pressed, buttons[Button.Bottom].Pressed)], true);
             }
-
-            return new ButtonAggregator(onKeyPressed, pressed.Remove(id), true);
+            return new ButtonAggregator(this, buttonsN, Key.None, true);
         }
 
-        private readonly Action<Key> onKeyPressed;
+        public ButtonAggregator OnPinValueChange(Button button)
+        {
+            if (!buttons.ContainsKey(button))
+            {
+                Console.WriteLine($"Unrecognized button {button}");
+                return this;
+            }
+            return new ButtonAggregator(this, 
+                buttons.SetItem(button, buttons[button].OnPinValueChange()));
+        }
+
+        public Key KeyState { get; }
+
+        private readonly ImmutableDictionary<Button, ImmutableButton> buttons;
 
         private readonly bool previouslyReleased;
-        private readonly ImmutableSortedSet<Button> pressed = ImmutableSortedSet<Button>.Empty;
 
+        // todo change this to make independent of the button id type or count
         private static readonly ImmutableDictionary<(bool, bool, bool), Key> buttonsToKey =
             new Dictionary<(bool, bool, bool), Key>{
-                { (true, false, false), Key.A },
+                { (false, false, false), Key.None },
+                { (false, false, true), Key.A },
                 { (false, true, false), Key.B },
-                { (false, false, true), Key.C },
-                { (true, true, false), Key.D },
-                { (false, true, true), Key.E },
+                { (true, false, false), Key.C },
+                { (false, true, true), Key.D },
+                { (true, true, false), Key.E },
                 { (true, false, true), Key.F },
                 { (true, true, true), Key.G }
             }.ToImmutableDictionary();
