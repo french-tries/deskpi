@@ -1,19 +1,20 @@
 ﻿using System;
 namespace piCommon
 {
-    public class ImmutableButton
+    public class ImmutableButton<T>
     {
         public ImmutableButton(Func<object, uint, Action> requestInterrupt, Func<bool> read,
-            Action<bool> onUpdate, uint debounceDelay = 50)
+            Action<bool> onUpdate, T Id, uint debounceDelay = 50)
         {
             this.requestInterrupt = requestInterrupt;
             this.read = read;
             this.onUpdate = onUpdate;
             this.debounceDelay = debounceDelay;
+            this.Id = Id;
             this.Pressed = read();
         }
 
-        private ImmutableButton(ImmutableButton source, 
+        private ImmutableButton(ImmutableButton<T> source, T Id, 
             Func<object, uint, Action> requestInterrupt = null, 
             Func<bool> read = null, Action<bool> onUpdate = null,
             uint? debounceDelay = null, bool? Pressed = null, bool interrupt = false)
@@ -22,6 +23,7 @@ namespace piCommon
             this.read = read ?? source.read;
             this.onUpdate = onUpdate ?? source.onUpdate;
             this.debounceDelay = debounceDelay ?? source.debounceDelay;
+            this.Id = Id;
             this.Pressed = Pressed ?? source.Pressed;
 
             if (interrupt == true)
@@ -30,25 +32,25 @@ namespace piCommon
             }
         }
 
-        public ImmutableButton OnPinValueChange()
+        public ImmutableButton<T> OnPinValueChange()
         {
             cancelInterrupt?.Invoke();
-            return new ImmutableButton(this, interrupt: true);
+            return new ImmutableButton<T>(this, Id, interrupt: true);
         }
 
-        public ImmutableButton ReceiveInterrupt(object caller)
+        public ImmutableButton<T> ReceiveInterrupt(object caller)
         {
             if (caller != this) return this;
-
             var newValue = read();
             if (Pressed != newValue)
             {
                 onUpdate(newValue);
-                return new ImmutableButton(this, Pressed: newValue);
+                return new ImmutableButton<T>(this, Id, Pressed: newValue);
             }
             return this;
         }
 
+        public T Id { get; }
         public bool Pressed { get; }
 
         private readonly Func<object, uint, Action> requestInterrupt;

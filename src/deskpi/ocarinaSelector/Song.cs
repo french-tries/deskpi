@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 
 namespace deskpi.ocarinaSelector
 {
-    // TODO use enum values?
     public enum Note { Left, Right, Bottom, Top, A }
 
     public class Song

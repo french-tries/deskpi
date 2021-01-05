@@ -66,7 +66,6 @@ namespace deskpi
                 .Insert(Song.PreludeOfLight.Notes, Mode.Dummy12)
                 .Insert(Song.ScarecrowsSong.Notes, Mode.Dummy13);
 
-            // TODO use enum values?
             var keyToNote = new Dictionary<Key, Note>{
                 { Key.A, Note.Bottom },
                 { Key.B, Note.Right },
@@ -85,7 +84,8 @@ namespace deskpi
             var middleButton = SetupButton(pushEvent, gpioHandler, middleLed, 3, Button.Middle);
             var bottomButton = SetupButton(pushEvent, gpioHandler, bottomLed, 2, Button.Bottom);
 
-            buttonAggregator = new ButtonAggregator(topButton, middleButton, bottomButton);
+            buttonAggregator = new ButtonAggregator(
+                new List<ImmutableButton<Button>> { topButton, middleButton, bottomButton });
 
             //////////////////////////////
 
@@ -140,7 +140,7 @@ namespace deskpi
 
             if (buttonAggregatorN == buttonAggregator && stringWriter == stringWriterN)
             {
-                // TODO sometimes happens
+                // TODO happens at first press
                 Console.WriteLine($"Unrecognized TimerEvent with caller {te.Caller}");
                 return this;
             }
@@ -165,18 +165,17 @@ namespace deskpi
             return stringWriter;
         }
 
-        private static ImmutableButton SetupButton(Action<object> pushEvent,
+        private static ImmutableButton<Button> SetupButton(Action<object> pushEvent,
             GpioHandler gpioHandler, Action<bool> led, int pin, Button button)
         {
-            var result = new ImmutableButton(
-                InterruptHandler.RequestInterrupt(
-                    (c) => { pushEvent(new TimerEvent(c)); }),
-                () => !gpioHandler.Read(pin), led);
             gpioHandler.RegisterInterruptCallback(pin,
                 () => {
                     pushEvent(new PinValueChangeEvent(button));
                 });
-            return result;
+            return new ImmutableButton<Button>(
+                InterruptHandler.RequestInterrupt(
+                    (c) => { pushEvent(new TimerEvent(c)); }),
+                () => !gpioHandler.Read(pin), led, button);
         }
 
         private readonly StringSsdWriter stringWriter;
