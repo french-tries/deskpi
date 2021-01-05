@@ -10,7 +10,7 @@ namespace deskpi
     public enum Button { Bottom = 1, Middle = 2, Top = 4 }
     public enum Key { None, A = 1, B = 2, C = 4, D = 3, E = 6, F = 5, G = 7 }
 
-    public class ButtonAggregator
+    public class ButtonAggregator : ITickable<ButtonAggregator>
     {
         public ButtonAggregator(IEnumerable<ImmutableButton<Button>> buttons)
         {
@@ -32,12 +32,12 @@ namespace deskpi
         private static int CountPressed(ImmutableDictionary<Button, ImmutableButton<Button>> buttons) => 
             buttons.Values.Aggregate(0, (count, button) => button.Pressed ? count + 1 : count);
 
-        public ButtonAggregator ReceiveInterrupt(object caller)
+        public ButtonAggregator Tick(uint currentTime)
         {
-            var updated = from entry in buttons 
-                let newVal = entry.Value.ReceiveInterrupt(caller)
-                where newVal != entry.Value
-                select new KeyValuePair<Button, ImmutableButton<Button>>(entry.Key, newVal);
+            var updated = from entry in buttons
+                          let newVal = entry.Value.Tick(currentTime)
+                          where newVal != entry.Value
+                          select new KeyValuePair<Button, ImmutableButton<Button>>(entry.Key, newVal);
 
             if (!updated.Any())
             {
@@ -55,6 +55,10 @@ namespace deskpi
             }
             return new ButtonAggregator(this, buttonsN, Key.None, true);
         }
+
+        public uint? NextTick(uint currentTime) =>
+            buttons.Values.Min((button) => button.NextTick(currentTime));
+
 
         public ButtonAggregator OnPinValueChange(Button button)
         {

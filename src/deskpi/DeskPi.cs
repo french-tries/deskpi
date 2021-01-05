@@ -27,7 +27,7 @@ namespace deskpi
         }
     }
 
-    public class DeskPi
+    public class DeskPi : ITickable<DeskPi>
     {
         public DeskPi(GpioHandler gpioHandler, Action<object> pushEvent)
         {
@@ -124,28 +124,36 @@ namespace deskpi
 
         private DeskPi ReceiveEvent(TimerEvent te)
         {
-            var buttonAggregatorN = buttonAggregator.ReceiveInterrupt(te.Caller);
-            var ocarinaSelectorN = ocarinaSelector;
-            var stringWriterN = stringWriter;
+            var stringWriterN = stringWriter.ReceiveInterrupt(te.Caller);
 
-            if (buttonAggregatorN == buttonAggregator)
-            {
-                stringWriterN = stringWriter.ReceiveInterrupt(te.Caller);
-            }
-            else if (buttonAggregator.KeyState != buttonAggregatorN.KeyState)
-            {
-                ocarinaSelectorN = ocarinaSelector.ReceiveKey(buttonAggregatorN.KeyState);
-                stringWriterN = Write(ocarinaSelectorN.Text);
-            }
-
-            if (buttonAggregatorN == buttonAggregator && stringWriter == stringWriterN)
+            if (stringWriter == stringWriterN)
             {
                 // TODO happens at first press
                 Console.WriteLine($"Unrecognized TimerEvent with caller {te.Caller}");
                 return this;
             }
+            return new DeskPi(this, stringWriter : stringWriterN);
+        }
+
+        public uint? NextTick(uint currentTime) => buttonAggregator.NextTick(currentTime);
+
+        public DeskPi Tick(uint currentTime)
+        {
+            var buttonAggregatorN = buttonAggregator.Tick(currentTime);
+            var ocarinaSelectorN = ocarinaSelector;
+            var stringWriterN = stringWriter;
+
+            if (buttonAggregatorN == buttonAggregator)
+            {
+                return this;
+            }
+            if (buttonAggregator.KeyState != buttonAggregatorN.KeyState)
+            {
+                ocarinaSelectorN = ocarinaSelector.ReceiveKey(buttonAggregatorN.KeyState);
+                stringWriterN = Write(ocarinaSelectorN.Text);
+            }
             return new DeskPi(this, buttonAggregator: buttonAggregatorN,
-                ocarinaSelector : ocarinaSelectorN, stringWriter : stringWriterN);
+                ocarinaSelector: ocarinaSelectorN, stringWriter: stringWriterN);
         }
 
         private DeskPi ReceiveEvent(PinValueChangeEvent pvce)
@@ -165,17 +173,17 @@ namespace deskpi
             return stringWriter;
         }
 
-        private static ImmutableButton<Button> SetupButton(Action<object> pushEvent,
-            GpioHandler gpioHandler, Action<bool> led, int pin, Button button)
+        private static ImmutableButton<Button> SetupButton(
+            Action<object> pushEvent, GpioHandler gpioHandler, Action<bool> led,
+            int pin, Button id, uint interval = 50)
         {
             gpioHandler.RegisterInterruptCallback(pin,
                 () => {
-                    pushEvent(new PinValueChangeEvent(button));
+                    pushEvent(new PinValueChangeEvent(id));
                 });
             return new ImmutableButton<Button>(
-                InterruptHandler.RequestInterrupt(
-                    (c) => { pushEvent(new TimerEvent(c)); }),
-                () => !gpioHandler.Read(pin), led, button);
+                () => new Ticker(interval, gpioHandler.Millis),
+                () => !gpioHandler.Read(pin), led, id);
         }
 
         private readonly StringSsdWriter stringWriter;

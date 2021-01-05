@@ -12,7 +12,7 @@ namespace piCommon
                 var source = new CancellationTokenSource();
                 var task = InterruptTask(caller, delay, oncomplete, source.Token);
 
-                return source.Cancel;
+                return () => { Console.WriteLine("cancelling"); source.Cancel(); };
             };
 
         private static async Task InterruptTask(object caller, uint delay,
