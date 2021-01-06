@@ -91,7 +91,7 @@
     <Compile Include="src\immutableSsd\StringSsdWriter.cs" />
     <Compile Include="test\immutableSsd\DirectSsdWriterTests.cs" />
     <Compile Include="test\immutableSsd\GlyphTests.cs" />
-    <Compile Include="test\immutableSsd\ImmutableTimerTests.cs" />
+    <Compile Include="test\immutableSsd\TickerTests.cs" />
     <Compile Include="test\immutableSsd\ScrollingSelectorTests.cs" />
     <Compile Include="test\immutableSsd\SsdTests.cs" />
     <Compile Include="test\immutableSsd\StringSsdWriterTests.cs" />
@@ -111,6 +111,7 @@
     <Compile Include="src\deskpi\HelpMode.cs" />
     <Compile Include="src\piCommon\Ticker.cs" />
     <Compile Include="src\piCommon\ITickable.cs" />
+    <Compile Include="src\piCommon\PiUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -123,7 +124,6 @@
     <Folder Include="test\piCommon\" />
     <Folder Include="src\deskpi\" />
     <Folder Include="src\deskpi\ocarinaSelector\" />
-    <Folder Include="src\immutableSsd\surplus\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

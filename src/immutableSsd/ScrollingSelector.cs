@@ -1,40 +1,41 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Optional;
 using piCommon;
 
 namespace immutableSsd
 {
-    // @todo cancel interrupt on updated values, dispose ???
     public class ScrollingSelector<T> : ISelector<T>
     {
-        public ScrollingSelector(Func<object, uint, Action> requestInterrupt, 
-            uint delay, uint endsDelay, uint availableDigits, ImmutableList<T> values) : 
-            this(requestInterrupt, delay, endsDelay, availableDigits, values, 0)
-        {
-        }
-
-        private ScrollingSelector(Func<object, uint, Action> requestInterrupt, uint delay,
-            uint endsDelay, uint availableDigits, ImmutableList<T> values, int offset)
+        public ScrollingSelector(Func<uint, ITicker> getTicker,  uint delay,
+            uint endsDelay, uint availableDigits, ImmutableList<T> values)
         {
             Debug.Assert(availableDigits > 0);
 
-            this.requestInterrupt = requestInterrupt;
+            this.getTicker = getTicker;
             this.delay = delay;
             this.endsDelay = endsDelay;
             this.availableDigits = availableDigits;
             this.values = values;
-            this.offset = offset;
+            this.offset = 0;
+            this.ticker = values.Count <= availableDigits ? 
+                Option.None<ITicker>() : getTicker(endsDelay).Some();
+        }
 
-            if (values.Count > availableDigits)
-            {
-                var currentDelay = delay;
-                if (offset == 0 || offset == values.Count - availableDigits)
-                {
-                    currentDelay = endsDelay;
-                }
-                cancelInterrupt = requestInterrupt(this, currentDelay);
-            }
+        private ScrollingSelector(ScrollingSelector<T> source,
+            Func<uint, ITicker> getTicker = null, uint? delay = null,
+            uint? endsDelay = null, uint? availableDigits = null,
+            ImmutableList<T> values = null, int? offset = null,
+            Option<ITicker>? ticker = null)
+        {
+            this.getTicker = getTicker ?? source.getTicker;
+            this.delay = delay ?? source.delay;
+            this.endsDelay = endsDelay ?? source.endsDelay;
+            this.availableDigits = availableDigits ?? source.availableDigits;
+            this.values = values ?? source.values;
+            this.offset = offset ?? source.offset;
+            this.ticker = ticker ?? source.ticker;
         }
 
         public ImmutableList<T> GetSelected()
@@ -46,24 +47,31 @@ namespace immutableSsd
                 Math.Min((int)availableDigits, values.Count - offset));
         }
 
-        public ISelector<T> ReceiveInterrupt(object caller)
+        public uint? NextTick(uint currentTime) => PiUtils.NextTick(ticker, currentTime);
+
+        public ISelector<T> Tick(uint currentTime)
         {
-            if (caller == this && caller is ScrollingSelector<T> selector)
-            {
-                return new ScrollingSelector<T>(
-                    requestInterrupt, delay, endsDelay, availableDigits, values,
-                    offset >= values.Count - availableDigits ? 0 : offset + 1);
-            }
-            return this;
+            var result = this;
+            ticker.MatchSome((tck) => {
+                if (tck.Ticked(currentTime))
+                {
+                    var offsetN = offset >= values.Count - availableDigits ? 0 : offset + 1;
+                    var currentDelay = offsetN == 0 || offsetN == values.Count - availableDigits ?
+                        endsDelay : delay;
+                    result = new ScrollingSelector<T>(this, offset: offsetN,
+                        ticker: getTicker(currentDelay).SomeNotNull());
+                }
+            });
+            return result;
         }
 
-        private readonly Func<object, uint, Action> requestInterrupt;
+        private readonly Func<uint, ITicker> getTicker;
         private readonly uint delay;
         private readonly uint endsDelay;
         private readonly uint availableDigits;
         private readonly ImmutableList<T> values;
-        private readonly int offset;
 
-        private readonly Action cancelInterrupt;
+        private readonly int offset;
+        private readonly Option<ITicker> ticker;
     }
 }

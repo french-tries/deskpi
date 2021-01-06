@@ -4,10 +4,9 @@ using piCommon;
 namespace immutableSsd
 {
     // todo ishh...
-    public interface ISsdWriter<TPARAM>
+    public interface ISsdWriter<T> : ITickable<ISsdWriter<T>>
     {
         uint AvailableDigits { get; }
-        ISsdWriter<TPARAM> Write(TPARAM values);
-        ISsdWriter<TPARAM> ReceiveInterrupt(object caller);
+        ISsdWriter<T> Write(T values);
     }
 }

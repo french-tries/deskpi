@@ -3,7 +3,7 @@
 namespace piCommon.test
 {
     [TestFixture]
-    public class ImmutableTimerTests
+    public class TickerTests
     {
         [TestCase]
         public void Tick_AtStart_NotTicked()
@@ -20,7 +20,7 @@ namespace piCommon.test
         }
 
         [TestCase]
-        public void Tick_LargerThanInterval_Ticked()
+        public void Tick_AtInterval_Ticked()
         {
             var timer = new Ticker(2, 0);
             Assert.True(timer.Ticked(2));

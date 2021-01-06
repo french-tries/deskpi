@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Linq;
 using immutableSsd.test.stubs;
 using NUnit.Framework;
 
@@ -13,13 +14,13 @@ namespace immutableSsd.test
             var testWriter = new SsdWriterStub<byte>();
             var stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character, 
-                (arg1, arg2) => new SelectorStub<byte>(arg1));
+                (arg1, arg2) => new SelectorStub<byte> { Text = arg1 });
 
             var str = "123";
-            var tickable = stringWriter.Write(str);
+            stringWriter = stringWriter.Write(str);
 
-            testWriter.TestValues(ImmutableList<byte>.Empty
-                .Add((byte)'1').Add((byte)'2').Add((byte)'3'));
+            Assert.IsTrue(testWriter.LastValues.SequenceEqual(ImmutableList<byte>.Empty
+                .Add((byte)'1').Add((byte)'2').Add((byte)'3')));
         }
 
         [TestCase]
@@ -28,14 +29,14 @@ namespace immutableSsd.test
             var testWriter = new SsdWriterStub<byte>();
             var stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character,
-                (arg1, arg2) => new SelectorStub<byte>(arg1));
+                (arg1, arg2) => new SelectorStub<byte> { Text = arg1 });
 
             var strs = ImmutableList<(string, uint)>.Empty
                 .Add(("1", 1)).Add(("2", 1)).Add(("3", 1));
-            var tickable = stringWriter.Write(strs);
+            stringWriter = stringWriter.Write(strs);
 
-            testWriter.TestValues(ImmutableList<byte>.Empty
-                .Add((byte)'1').Add((byte)'2').Add((byte)'3'));
+            Assert.IsTrue(testWriter.LastValues.SequenceEqual(ImmutableList<byte>.Empty
+                .Add((byte)'1').Add((byte)'2').Add((byte)'3')));
         }
 
         [TestCase]
@@ -44,14 +45,14 @@ namespace immutableSsd.test
             var testWriter = new SsdWriterStub<byte>();
             var stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character,
-                (arg1, arg2) => new SelectorStub<byte>(arg1));
+                (arg1, arg2) => new SelectorStub<byte> { Text = arg1 });
 
             var strs = ImmutableList<(string, uint)>.Empty
                 .Add(("1", 1)).Add(("2", 1)).Add(("3", 1)).Add(("4", 1));
-            var tickable = stringWriter.Write(strs);
+            stringWriter = stringWriter.Write(strs);
 
-            testWriter.TestValues(ImmutableList<byte>.Empty
-                .Add((byte)'1').Add((byte)'2').Add((byte)'3'));
+            Assert.IsTrue(testWriter.LastValues.SequenceEqual(ImmutableList<byte>.Empty
+                .Add((byte)'1').Add((byte)'2').Add((byte)'3')));
         }
 
         [TestCase]
@@ -64,15 +65,13 @@ namespace immutableSsd.test
                 (arg1, arg2) => {testSelector.Text = arg1; return testSelector; });
 
             var str = "123";
-            var tickable = stringWriter.Write(str);
+            stringWriter = stringWriter.Write(str);
 
-            testWriter.Reset();
-            testSelector.CreateNew = true;
+            testSelector.NewText = ImmutableList<byte>.Empty.Add(100);
 
-            stringWriter = stringWriter.ReceiveInterrupt(testSelector);
+            stringWriter = stringWriter.Tick(1);
 
-            testWriter.TestValues(ImmutableList<byte>.Empty
-                .Add((byte)'1').Add((byte)'2').Add((byte)'3'));
+            Assert.IsTrue(testWriter.LastValues.SequenceEqual(testSelector.NewText));
         }
 
         [TestCase]
@@ -81,17 +80,16 @@ namespace immutableSsd.test
             var testWriter = new SsdWriterStub<byte>();
             var stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character,
-                (arg1, arg2) => new SelectorStub<byte>(arg1));
+                (arg1, arg2) => new SelectorStub<byte> { Text = arg1 });
 
             var str = "123";
-            var tickable = stringWriter.Write(str);
+            stringWriter = stringWriter.Write(str);
 
-            testWriter.Reset();
+            testWriter.NextTickTime = 0;
 
-            stringWriter = stringWriter.ReceiveInterrupt(testWriter);
+            stringWriter = stringWriter.Tick(1);
 
-            testWriter.TestUnwritten();
-            testWriter.TestCaller(testWriter);
+            Assert.AreEqual(1, testWriter.TickTime);
         }
     }
 }

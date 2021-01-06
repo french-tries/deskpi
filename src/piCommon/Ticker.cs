@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics;
+using Optional;
 
 namespace piCommon
 {
-    public class Ticker
+    public class Ticker : ITicker
     {
         public Ticker(uint interval, uint startTime)
         {

@@ -46,31 +46,12 @@ namespace immutableSsd.test
             var writer = new DirectSsdWriter(
                 ImmutableList<int>.Empty.Add(0),
                 ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write, (arg1, arg2) => () => { }, 1);
+                gpio.Write, () => null);
 
             gpio.TestWritten(2, false);
             gpio.TestWritten(3, false);
             gpio.TestWritten(0, false);
             gpio.TestEmpty();
-        }
-
-        [TestCase]
-        public void Creation_Expects_RequestInterrupt()
-        {
-            var gpio = new TestGpio();
-
-            object receivedCaller = null;
-            uint receivedDelay = 0;
-
-            var writer = new DirectSsdWriter(
-                ImmutableList<int>.Empty.Add(0),
-                ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write,
-                (arg1, arg2) => { receivedCaller = arg1; receivedDelay = arg2; return () => { }; },
-                1);
-
-            Assert.AreEqual(writer, receivedCaller);
-            Assert.AreEqual(1, receivedDelay);
         }
 
         [TestCase]
@@ -81,7 +62,7 @@ namespace immutableSsd.test
             ISsdWriter<ImmutableList<byte>> writer = new DirectSsdWriter(
                 ImmutableList<int>.Empty.Add(0).Add(1),
                 ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write, (arg1, arg2) => () => { }, 1);
+                gpio.Write, () => null);
 
             gpio.Clear();
 
@@ -103,24 +84,27 @@ namespace immutableSsd.test
                 0b10000000
             };
             var gpio = new TestGpio();
+            uint millis = 0;
 
             ISsdWriter<ImmutableList<byte>> writer = new DirectSsdWriter(
                 ImmutableList<int>.Empty.Add(0).Add(1),
                 ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write, (arg1, arg2) => () => { }, 5);
+                gpio.Write, () => new Ticker(1, millis));
 
             writer = writer.Write(ImmutableList<byte>.Empty.Add(0b01000000).Add(0b10000000));
 
             gpio.Clear();
 
-            writer = writer.ReceiveInterrupt(writer);
+            writer = writer.Tick(++millis);
             gpio.TestWritten(2, false);
             gpio.TestWritten(0, true);
             gpio.TestWritten(1, false);
             gpio.TestWritten(3, true);
             gpio.TestEmpty();
 
-            writer = writer.ReceiveInterrupt(writer);
+            Assert.AreEqual(1, writer.NextTick(1));
+
+            writer = writer.Tick(++millis);
             gpio.TestWritten(3, false);
             gpio.TestWritten(0, false);
             gpio.TestWritten(1, true);
@@ -132,29 +116,30 @@ namespace immutableSsd.test
        public void WriteSteps_WhenSmallerValuesSize_ClearSteps()
        {
             var gpio = new TestGpio();
+            uint millis = 0;
 
             ISsdWriter<ImmutableList<byte>> writer = new DirectSsdWriter(
                 ImmutableList<int>.Empty.Add(0).Add(1),
                 ImmutableList<int>.Empty.Add(2).Add(3),
-                gpio.Write, (arg1, arg2) => () => { }, 5);
+                gpio.Write, () => new Ticker(1, millis));
 
             writer = writer.Write(ImmutableList<byte>.Empty.Add(0b01000000));
 
             gpio.Clear();
 
-            writer = writer.ReceiveInterrupt(writer);
+            writer = writer.Tick(++millis);
             gpio.TestWritten(2, false);
             gpio.TestWritten(3, false);
             gpio.TestWritten(0, false);
             gpio.TestWritten(1, false);
             gpio.TestEmpty();
-
-            writer = writer.ReceiveInterrupt(writer);
+            /*
+            writer = writer.Tick(++millis);
             gpio.TestWritten(3, false);
             gpio.TestWritten(0, false);
             gpio.TestWritten(1, true);
             gpio.TestWritten(2, true);
-            gpio.TestEmpty();
+            gpio.TestEmpty();*/
         }
     }
 }

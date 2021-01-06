@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Optional;
 using piCommon;
 
 namespace immutableSsd
@@ -8,44 +9,55 @@ namespace immutableSsd
     public class DirectSsdWriter : ISsdWriter<ImmutableList<byte>>
     {
         public DirectSsdWriter(ImmutableList<int> segmentPins, ImmutableList<int> digitPins,
-            Action<int, bool> writeAction, Func<object, uint, Action> requestInterrupt, uint interval) :
-            this(segmentPins, digitPins, writeAction, requestInterrupt, interval, 
-                ImmutableList<byte>.Empty)
+            Action<int, bool> writeAction, Func<ITicker> getTicker)
         {
-        }
-
-        private DirectSsdWriter(ImmutableList<int> segmentPins, ImmutableList<int> digitPins,
-            Action<int, bool> writeAction, Func<object, uint, Action> requestInterrupt, uint interval,
-            ImmutableList<byte> values, int currentDigit = 0)
-        {
-            Debug.Assert(segmentPins.Count == 8);
-
             this.segmentPins = segmentPins;
             this.digitPins = digitPins;
             this.writeAction = writeAction;
-            this.requestInterrupt = requestInterrupt;
-            this.interval = interval;
-            this.values = values;
-            this.currentDigit = currentDigit;
+            this.getTicker = getTicker;
 
             Write();
-            requestInterrupt(this, interval);
+        }
+
+        private DirectSsdWriter(DirectSsdWriter source, ImmutableList<int> segmentPins = null,
+            ImmutableList<int> digitPins = null, Action<int, bool> writeAction = null,
+            Func<ITicker> getTicker = null, ImmutableList<byte> values = null,
+            Option<ITicker>? ticker = null, int? currentDigit = null)
+        {
+            Debug.Assert(segmentPins.Count == 8);
+
+            this.segmentPins = segmentPins ?? source.segmentPins;
+            this.digitPins = digitPins ?? source.digitPins;
+            this.writeAction = writeAction ?? source.writeAction;
+            this.getTicker = getTicker ?? source.getTicker;
+            this.values = values ?? source.values;
+            this.ticker = ticker ?? source.ticker;
+            this.currentDigit = currentDigit ?? source.currentDigit;
+
+            Write();
         }
 
         public ISsdWriter<ImmutableList<byte>> Write(ImmutableList<byte> newValues) =>
-            new DirectSsdWriter(segmentPins, digitPins, writeAction, requestInterrupt, interval, newValues);
+            new DirectSsdWriter(this, values : newValues, ticker: getTicker().SomeNotNull(),
+                currentDigit: 0);
 
-        public ISsdWriter<ImmutableList<byte>> ReceiveInterrupt(object caller)
+        public uint? NextTick(uint currentTime) => PiUtils.NextTick(ticker, currentTime);
+
+        public ISsdWriter<ImmutableList<byte>> Tick(uint currentTime)
         {
-            if (caller == this && caller is DirectSsdWriter writer)
+            var result = this;
+            ticker.MatchSome((tck) =>
             {
-                var nextDigit = currentDigit + 1;
-                if (nextDigit >= digitPins.Count) nextDigit = 0;
+                if (tck.Ticked(currentTime))
+                {
+                    var nextDigit = currentDigit + 1;
+                    if (nextDigit >= digitPins.Count) nextDigit = 0;
 
-                return new DirectSsdWriter(segmentPins, digitPins, writeAction,
-                    requestInterrupt, interval, values, nextDigit);
-            }
-            return this;
+                    result = new DirectSsdWriter(this, ticker: getTicker().Some(),
+                        currentDigit: nextDigit);
+                }
+            });
+            return result;
         }
 
         public uint AvailableDigits => (uint)digitPins.Count;
@@ -78,13 +90,13 @@ namespace immutableSsd
             writeAction(digitPins[currentDigit], true);
         }
 
-        private readonly Action<int, bool> writeAction;
         private readonly ImmutableList<int> segmentPins;
         private readonly ImmutableList<int> digitPins;
+        private readonly Action<int, bool> writeAction;
+        private readonly Func<ITicker> getTicker;
 
-        private readonly ImmutableList<byte> values;
-        private readonly Func<object, uint, Action> requestInterrupt;
-        private readonly int currentDigit;
-        private readonly uint interval;
+        private readonly ImmutableList<byte> values = ImmutableList<byte>.Empty;
+        private readonly Option<ITicker> ticker = Option.None<ITicker>();
+        private readonly int currentDigit = 0;
     }
 }

@@ -80,8 +80,9 @@ namespace immutableSsd
             return this;
         }
 
-        public ISsdWriter<ImmutableList<byte>> ReceiveInterrupt(object caller)
-            => this;
+        public uint? NextTick(uint currentTime) => null;
+
+        public ISsdWriter<ImmutableList<byte>> Tick(uint currentTime) => this;
 
         private readonly Action<byte[]> spiWriteAction;
         /*

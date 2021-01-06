@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
+using piCommon;
 
 namespace immutableSsd
 {
     // todo check interfaces everywhere
-    public class StringSsdWriter
+    public class StringSsdWriter : ITickable<StringSsdWriter>
     {
         public delegate byte GlyphToSegments(Glyph glyph);
 
@@ -45,6 +46,7 @@ namespace immutableSsd
         }
 
         // todo would be more useful with fractions of total digits...
+        // todo text smaller than limit
         public StringSsdWriter Write(ImmutableList<(string, uint)> texts)
         {
             var newSelectors = ImmutableList<ISelector<byte>>.Empty;
@@ -68,27 +70,24 @@ namespace immutableSsd
             return new StringSsdWriter(newWriter, converter, createSelector, newSelectors);
         }
 
-        public StringSsdWriter ReceiveInterrupt(object caller)
+        public uint? NextTick(uint currentTime) =>
+            PiUtils.Min(writer.NextTick(currentTime),
+                selectors.Min((button) => button.NextTick(currentTime)));
+
+        public StringSsdWriter Tick(uint currentTime)
         {
-            // todo non O(N^2) way
+            var selectorsN = (from entry in selectors 
+                          let newVal = entry.Tick(currentTime)
+                          select newVal).ToImmutableList();
 
-            var newSelectors = selectors;
-            foreach (ISelector<byte> selector in selectors)
+            var selectorEquals = selectors.SequenceEqual(selectorsN);
+
+            var writerN = selectorEquals ? writer.Tick(currentTime) :
+                writer.Write(ConcatSelected(selectorsN));
+
+            if (!selectorEquals || writerN != writer)
             {
-                var newSelector = selector.ReceiveInterrupt(caller);
-                if (selector != newSelector)
-                {
-                    newSelectors = newSelectors.Replace(selector, newSelector);
-                }
-            }
-
-            var newWriter = (selectors != newSelectors) ?
-                writer.Write(ConcatSelected(newSelectors)) :
-                writer.ReceiveInterrupt(caller);
-
-            if (selectors != newSelectors || newWriter != writer)
-            {
-                return new StringSsdWriter(newWriter, converter, createSelector, newSelectors);
+                return new StringSsdWriter(writerN, converter, createSelector, selectorsN);
             }
             return this;
         }

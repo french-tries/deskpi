@@ -9,54 +9,22 @@ namespace immutableSsd.test.stubs
     {
         public uint AvailableDigits => 3;
 
-        public void TestValues(ImmutableList<T> expected)
-        {
-            if (LastValues == null)
-            {
-                Assert.Fail();
-            }
-            else
-            {
-                Assert.IsTrue(expected.SequenceEqual(LastValues));
-            }
-        }
-
-        public void TestUnwritten()
-        {
-            Assert.IsNull(LastValues);
-        }
-
-        public void TestCaller(object expected)
-        {
-            if (lastCaller == null)
-            {
-                Assert.Fail();
-            }
-            else
-            {
-                Assert.AreEqual(expected, lastCaller);
-            }
-        }
-
-        public void Reset()
-        {
-            LastValues = null;
-            lastCaller = null;
-        }
-
         public ISsdWriter<ImmutableList<T>> Write(ImmutableList<T> values)
         {
             LastValues = values;
             return this;
         }
 
-        public ISsdWriter<ImmutableList<T>> ReceiveInterrupt(object caller)
+        public uint? NextTick(uint currentTime) => NextTickTime;
+        public ISsdWriter<ImmutableList<T>> Tick(uint currentTime)
         {
-            lastCaller = caller;
-            return this;
+            TickTime = currentTime;
+            return NextTickTime == 0 ? new SsdWriterStub<T>(): this;
         }
 
-        public ImmutableList<T> LastValues { get; private set; }
-        private object lastCaller;
+        public uint NextTickTime { get; set; } = 1;
+        public uint TickTime { get; set; } = 0;
+
+        public ImmutableList<T> LastValues { get; private set; } = ImmutableList<T>.Empty;
     }
 }

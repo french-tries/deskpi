@@ -5,7 +5,7 @@ namespace piCommon
 {
     public class ImmutableButton<T> : ITickable<ImmutableButton<T>>
     {
-        public ImmutableButton(Func<Ticker> getTicker, Func<bool> read,
+        public ImmutableButton(Func<ITicker> getTicker, Func<bool> read,
             Action<bool> onUpdate, T Id)
         {
             this.getTicker = getTicker;
@@ -16,9 +16,9 @@ namespace piCommon
         }
 
         private ImmutableButton(ImmutableButton<T> source, T Id,
-            Func<Ticker> getTicker = null, Func<bool> read = null,
+            Func<ITicker> getTicker = null, Func<bool> read = null,
             Action<bool> onUpdate = null, bool? Pressed = null,
-            Option<Ticker>? ticker = null)
+            Option<ITicker>? ticker = null)
         {
             this.getTicker = getTicker ?? source.getTicker;
             this.read = read ?? source.read;
@@ -42,27 +42,22 @@ namespace piCommon
                     {
                         onUpdate(newValue);
                         result = new ImmutableButton<T>(this, Id,
-                            Pressed: newValue, ticker: Option.None<Ticker>());
+                            Pressed: newValue, ticker: Option.None<ITicker>());
                     }
                 }
             } );
             return result;
         }
 
-        public uint? NextTick(uint currentTime)
-        {
-            uint? result = null;
-            ticker.MatchSome((tck) => result = tck.Remaining(currentTime));
-            return result;
-        }
+        public uint? NextTick(uint currentTime) => PiUtils.NextTick(ticker, currentTime);
 
         public T Id { get; }
         public bool Pressed { get; }
 
-        private readonly Func<Ticker> getTicker;
+        private readonly Func<ITicker> getTicker;
         private readonly Func<bool> read;
         private readonly Action<bool> onUpdate;
 
-        private readonly Option<Ticker> ticker = Option.None<Ticker>();
+        private readonly Option<ITicker> ticker = Option.None<ITicker>();
     }
 }

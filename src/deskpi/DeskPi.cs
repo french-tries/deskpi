@@ -7,16 +7,6 @@ using piCommon;
 
 namespace deskpi
 {
-    public class TimerEvent
-    {
-        public object Caller { get; }
-
-        public TimerEvent(object Caller)
-        {
-            this.Caller = Caller;
-        }
-    }
-
     public class PinValueChangeEvent
     {
         public Button Button { get; }
@@ -27,12 +17,12 @@ namespace deskpi
         }
     }
 
+    // todo separate to be able to do concurrency?
     public class DeskPi : ITickable<DeskPi>
     {
         public DeskPi(GpioHandler gpioHandler, Action<object> pushEvent)
         {
-            stringWriter = ImmutableSsd.CreateMax7219BackedDisplay(gpioHandler,
-                InterruptHandler.RequestInterrupt((obj) => pushEvent(new TimerEvent(obj))));
+            stringWriter = ImmutableSsd.CreateMax7219BackedDisplay(gpioHandler);
 
             // Todo review this
             var modes = new Dictionary<Mode, IDeskPiMode>{
@@ -112,8 +102,6 @@ namespace deskpi
         {
             switch (ev)
             {
-                case TimerEvent te:
-                    return ReceiveEvent(te);
                 case PinValueChangeEvent pvce:
                     return ReceiveEvent(pvce);
                 default:
@@ -122,20 +110,9 @@ namespace deskpi
             }
         }
 
-        private DeskPi ReceiveEvent(TimerEvent te)
-        {
-            var stringWriterN = stringWriter.ReceiveInterrupt(te.Caller);
-
-            if (stringWriter == stringWriterN)
-            {
-                // TODO happens at first press
-                Console.WriteLine($"Unrecognized TimerEvent with caller {te.Caller}");
-                return this;
-            }
-            return new DeskPi(this, stringWriter : stringWriterN);
-        }
-
-        public uint? NextTick(uint currentTime) => buttonAggregator.NextTick(currentTime);
+        public uint? NextTick(uint currentTime) => 
+            PiUtils.Min(buttonAggregator.NextTick(currentTime), 
+                stringWriter.NextTick(currentTime));
 
         public DeskPi Tick(uint currentTime)
         {
@@ -145,7 +122,11 @@ namespace deskpi
 
             if (buttonAggregatorN == buttonAggregator)
             {
-                return this;
+                stringWriterN = stringWriterN.Tick(currentTime);
+
+                if (stringWriter == stringWriterN) return this;
+
+                return new DeskPi(this, stringWriterN);
             }
             if (buttonAggregator.KeyState != buttonAggregatorN.KeyState)
             {

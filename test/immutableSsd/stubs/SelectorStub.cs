@@ -4,32 +4,16 @@ namespace immutableSsd.test.stubs
 {
     public class SelectorStub<T> : ISelector<T>
     {
-        public SelectorStub()
-            : this(ImmutableList<T>.Empty)
-        {
-        }
-
-        public SelectorStub(ImmutableList<T> text)
-        {
-            this.Text = text;
-        }
-
         public ImmutableList<T> GetSelected() => Text;
 
-        public ISelector<T> ReceiveInterrupt(object caller)
-        {
-            if (CreateNew)
-            {
-                newInstance.Text = Text;
-                return newInstance;
-            }
-            return this;
-        }
+        public uint? NextTick(uint currentTime) => NextTickVal;
 
-        public bool CreateNew { get; set; }
+        public ISelector<T> Tick(uint currentTime) =>
+            NewText == ImmutableList<T>.Empty ? this : new SelectorStub<T> { Text = NewText };
 
-        public ImmutableList<T> Text { get; set; }
+        public uint? NextTickVal { get; set; }
 
-        private static SelectorStub<T> newInstance = new SelectorStub<T>();
+        public ImmutableList<T> Text { get; set; } = ImmutableList<T>.Empty;
+        public ImmutableList<T> NewText { get; set; } = ImmutableList<T>.Empty;
     }
 }

@@ -3,9 +3,8 @@ using piCommon;
 
 namespace immutableSsd
 {
-    public interface ISelector<T>
+    public interface ISelector<T> : ITickable<ISelector<T>>
     {
         ImmutableList<T> GetSelected();
-        ISelector<T> ReceiveInterrupt(object caller);
     }
 }

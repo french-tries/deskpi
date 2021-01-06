@@ -4,6 +4,7 @@ using System.Linq;
 using immutableSsd;
 using immutableSsd.test.stubs;
 using NUnit.Framework;
+using piCommon;
 
 namespace immutableSsd.test
 {
@@ -13,7 +14,7 @@ namespace immutableSsd.test
         [TestCase]
         public void GetSelected_Empty_ReturnsEmpty()
         {
-            var selector = new ScrollingSelector<int>((arg1, arg2) => () => { },
+            var selector = new ScrollingSelector<int>((a) => null,
                 1, 2, 1, ImmutableList<int>.Empty);
 
             Assert.AreEqual(ImmutableList<int>.Empty, selector.GetSelected());
@@ -25,11 +26,8 @@ namespace immutableSsd.test
             var text = ImmutableList<char>.Empty.Add('a')
                 .Add('b');
 
-            uint delay = 1;
-            uint endsDelay = 2;
-
             var selector = new ScrollingSelector<char>(
-                (arg1, arg2) => () => { }, delay, endsDelay, 3, text);
+                (a) => null, 1, 2, 3, text);
 
             Assert.AreEqual(text, selector.GetSelected());
         }
@@ -40,11 +38,8 @@ namespace immutableSsd.test
             var text = ImmutableList<char>.Empty.Add('a')
                 .Add('b').Add('c');
 
-            uint delay = 1;
-            uint endsDelay = 2;
-
             var selector = new ScrollingSelector<char>(
-                (arg1, arg2) => () => { }, delay, endsDelay, 2, text);
+                (d) => new Ticker(d, 0), 1, 2, 2, text);
 
             Assert.True(text.GetRange(0,2).SequenceEqual(selector.GetSelected()));
         }
@@ -57,33 +52,27 @@ namespace immutableSsd.test
 
             uint delay = 1;
             uint endsDelay = 2;
+            uint millis = 0;
 
-            object receivedCaller = null;
-            uint receivedDelay = 0;
             ISelector<char> selector = new ScrollingSelector<char>(
-                (arg1, arg2) => { receivedCaller = arg1; receivedDelay = arg2; return() => { }; },
-                delay, endsDelay, 1, text);
+                (d) => new Ticker(d, millis), delay, endsDelay, 1, text);
 
-            Assert.AreEqual(selector, receivedCaller);
-            Assert.AreEqual(2, receivedDelay);
-
-            selector = selector.ReceiveInterrupt(selector);
+            millis += endsDelay;
+            selector = selector.Tick(millis);
 
             Assert.True(text.GetRange(1, 1).SequenceEqual(selector.GetSelected()));
-            Assert.AreEqual(selector, receivedCaller);
-            Assert.AreEqual(1, receivedDelay);
+            Assert.AreEqual(delay, selector.NextTick(millis));
 
-            selector = selector.ReceiveInterrupt(selector);
-
+            millis += delay;
+            selector = selector.Tick(millis);
             Assert.True(text.GetRange(2, 1).SequenceEqual(selector.GetSelected()));
-            Assert.AreEqual(selector, receivedCaller);
-            Assert.AreEqual(2, receivedDelay);
+            Assert.AreEqual(endsDelay, selector.NextTick(millis));
 
-            selector = selector.ReceiveInterrupt(selector);
+            millis += endsDelay;
+            selector = selector.Tick(millis);
 
             Assert.True(text.GetRange(0, 1).SequenceEqual(selector.GetSelected()));
-            Assert.AreEqual(selector, receivedCaller);
-            Assert.AreEqual(2, receivedDelay);
+            Assert.AreEqual(endsDelay, selector.NextTick(millis));
         }
     }
 }
