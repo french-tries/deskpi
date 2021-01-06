@@ -46,7 +46,6 @@ namespace immutableSsd
         }
 
         // todo would be more useful with fractions of total digits...
-        // todo text smaller than limit
         public StringSsdWriter Write(ImmutableList<(string, uint)> texts)
         {
             var newSelectors = ImmutableList<ISelector<byte>>.Empty;

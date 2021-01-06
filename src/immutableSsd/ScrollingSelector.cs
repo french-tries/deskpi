@@ -9,7 +9,7 @@ namespace immutableSsd
     public class ScrollingSelector<T> : ISelector<T>
     {
         public ScrollingSelector(Func<uint, ITicker> getTicker,  uint delay,
-            uint endsDelay, uint availableDigits, ImmutableList<T> values)
+            uint endsDelay, uint availableDigits, ImmutableList<T> values, T defaultValue)
         {
             Debug.Assert(availableDigits > 0);
 
@@ -17,7 +17,7 @@ namespace immutableSsd
             this.delay = delay;
             this.endsDelay = endsDelay;
             this.availableDigits = availableDigits;
-            this.values = values;
+            this.values = values.Fill(availableDigits, defaultValue);
             this.offset = 0;
             this.ticker = values.Count <= availableDigits ? 
                 Option.None<ITicker>() : getTicker(endsDelay).Some();

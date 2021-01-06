@@ -16,7 +16,7 @@ namespace immutableSsd
             ISelector<byte> createSelector(ImmutableList<byte> text, uint availableDigits) =>
                 new ScrollingSelector<byte>(
                     (interval) => new Ticker(interval, gpioHandler.Millis), 
-                    scrollDelay, endsScrollDelay, availableDigits, text);
+                    scrollDelay, endsScrollDelay, availableDigits, text, 0);
 
             return new StringSsdWriter(directWriter, converter.GetSegments, createSelector);
         }

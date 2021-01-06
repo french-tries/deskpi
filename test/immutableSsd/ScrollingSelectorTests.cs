@@ -15,9 +15,9 @@ namespace immutableSsd.test
         public void GetSelected_Empty_ReturnsEmpty()
         {
             var selector = new ScrollingSelector<int>((a) => null,
-                1, 2, 1, ImmutableList<int>.Empty);
+                1, 2, 1, ImmutableList<int>.Empty, 0);
 
-            Assert.AreEqual(ImmutableList<int>.Empty, selector.GetSelected());
+            Assert.AreEqual(ImmutableList<int>.Empty.Add(0), selector.GetSelected());
         }
 
         [TestCase]
@@ -27,7 +27,7 @@ namespace immutableSsd.test
                 .Add('b');
 
             var selector = new ScrollingSelector<char>(
-                (a) => null, 1, 2, 3, text);
+                (a) => null, 1, 2, 2, text, ' ');
 
             Assert.AreEqual(text, selector.GetSelected());
         }
@@ -39,7 +39,7 @@ namespace immutableSsd.test
                 .Add('b').Add('c');
 
             var selector = new ScrollingSelector<char>(
-                (d) => new Ticker(d, 0), 1, 2, 2, text);
+                (d) => new Ticker(d, 0), 1, 2, 2, text, ' ');
 
             Assert.True(text.GetRange(0,2).SequenceEqual(selector.GetSelected()));
         }
@@ -55,7 +55,7 @@ namespace immutableSsd.test
             uint millis = 0;
 
             ISelector<char> selector = new ScrollingSelector<char>(
-                (d) => new Ticker(d, millis), delay, endsDelay, 1, text);
+                (d) => new Ticker(d, millis), delay, endsDelay, 1, text, ' ');
 
             millis += endsDelay;
             selector = selector.Tick(millis);

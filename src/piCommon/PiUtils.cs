@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using Optional;
 
 namespace piCommon
@@ -17,6 +18,19 @@ namespace piCommon
         {
             uint? result = null;
             ticker.MatchSome((tck) => result = tck.Remaining(currentTime));
+            return result;
+        }
+
+        public static ImmutableList<T> Fill<T>(this ImmutableList<T> source, uint size, T fillValue)
+        {
+            var diff = size - source.Count;
+            if (diff <= 0) return source;
+
+            var result = source;
+            for (int i = 0; i < diff; i++)
+            {
+                result = result.Add(fillValue);
+            }
             return result;
         }
     }
