@@ -4,7 +4,7 @@ using Optional;
 
 namespace deskpi.ocarinaSelector
 {
-    public enum Mode
+    public enum ModeId
     {
         Selector, Dummy1, Dummy2, Help, Dummy4, Dummy5, Dummy6, Dummy7,
         Dummy8, Dummy9, Dummy10, Dummy11, Dummy12, Dummy13
@@ -12,9 +12,9 @@ namespace deskpi.ocarinaSelector
 
     public class OcarinaSelector : IDeskPiMode
     {
-        public OcarinaSelector(Trie<Note, Mode> songTrie,
+        public OcarinaSelector(Trie<Note, ModeId> songTrie,
             ImmutableDictionary<Key, Note> keyToNote,
-            Mode mode, ImmutableDictionary<Mode, IDeskPiMode> innerModes)
+            ModeId mode, ImmutableDictionary<ModeId, IDeskPiMode> innerModes)
         {
             this.songTrie = songTrie;
             this.keyToNote = keyToNote;
@@ -23,10 +23,10 @@ namespace deskpi.ocarinaSelector
             this.innerModes = innerModes;
         }
 
-        private OcarinaSelector(OcarinaSelector source, Mode? mode = null,
-            Trie<Note, Mode> songTrie = null, ImmutableDictionary<Key, Note> keyToNote = null,
+        private OcarinaSelector(OcarinaSelector source, ModeId? mode = null,
+            Trie<Note, ModeId> songTrie = null, ImmutableDictionary<Key, Note> keyToNote = null,
             ImmutableList<Note> receivedNotes = null,
-            ImmutableDictionary<Mode, IDeskPiMode> innerModes = null)
+            ImmutableDictionary<ModeId, IDeskPiMode> innerModes = null)
         {
             this.songTrie = songTrie ?? source.songTrie;
             this.keyToNote = keyToNote ?? source.keyToNote;
@@ -37,13 +37,13 @@ namespace deskpi.ocarinaSelector
 
         public IDeskPiMode ReceiveKey(Key key)
         {
-            if (mode == Mode.Selector)
+            if (mode == ModeId.Selector)
             {
                 return ReceiveSelectionKey(key);
             }
             if (key == Key.F)
             {
-                return new OcarinaSelector(this, Mode.Selector);
+                return new OcarinaSelector(this, ModeId.Selector);
             }
             return new OcarinaSelector(this,
                 innerModes: innerModes.SetItem(mode, innerModes[mode].ReceiveKey(key)));
@@ -62,7 +62,7 @@ namespace deskpi.ocarinaSelector
             }
             newNotes = newNotes.Insert(0, keyToNote[key]);
 
-            Option<Mode> modeN = songTrie.Find(newNotes);
+            Option<ModeId> modeN = songTrie.Find(newNotes);
 
             return modeN.Match(
                 (arg) =>
@@ -78,34 +78,21 @@ namespace deskpi.ocarinaSelector
 
         public TextValue Text {
             get {
-                if (mode == Mode.Selector)
+                if (mode == ModeId.Selector)
                 {
-                    return new SimpleTextValue(receivedNotes.Aggregate(
-                        "", (text, note) =>  NoteToChar(note) + text));
+                    return new SimpleTextValue(receivedNotes.Aggregate("",
+            (text, note) =>  Song.NoteToChar(note) + text));
                 }
                 return innerModes[mode].Text;
             }
         }
 
-        private static char NoteToChar(Note note)
-        {
-            switch (note)
-            {
-                case Note.Left: return '\u02C2';
-                case Note.Right: return '\u02C3';
-                case Note.Top: return '\u02C4';
-                case Note.Bottom: return '\u02C5';
-                case Note.A: return 'A';
-            }
-            return ' ';
-        }
-
-        private readonly Trie<Note, Mode> songTrie;
+        private readonly Trie<Note, ModeId> songTrie;
         private readonly ImmutableDictionary<Key, Note> keyToNote;
         private readonly ImmutableList<Note> receivedNotes = ImmutableList<Note>.Empty;
 
-        private readonly Mode mode;
-        private readonly ImmutableDictionary<Mode, IDeskPiMode> innerModes;
+        private readonly ModeId mode;
+        private readonly ImmutableDictionary<ModeId, IDeskPiMode> innerModes;
 
 
     }

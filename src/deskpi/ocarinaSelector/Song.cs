@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace deskpi.ocarinaSelector
 {
@@ -68,5 +69,21 @@ namespace deskpi.ocarinaSelector
         public static Song ScarecrowsSong = new Song("Scarecrow's Song", new List<Note>
         {Note.Left, Note.Left, Note.Left, Note.Left, Note.Left, Note.Left, Note.Left, Note.Left}
         .ToImmutableList());
+
+        public static char NoteToChar(Note note)
+        {
+            switch (note)
+            {
+                case Note.Left: return '\u02C2';
+                case Note.Right: return '\u02C3';
+                case Note.Top: return '\u02C4';
+                case Note.Bottom: return '\u02C5';
+                case Note.A: return 'A';
+            }
+            return ' ';
+        }
+
+        public static string NotesToString(ImmutableList<Note> Notes) => Notes.Aggregate("",
+            (text, note) => text + NoteToChar(note));
     }
 }

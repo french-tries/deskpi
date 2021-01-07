@@ -112,6 +112,7 @@
     <Compile Include="src\piCommon\Ticker.cs" />
     <Compile Include="src\piCommon\ITickable.cs" />
     <Compile Include="src\piCommon\PiUtils.cs" />
+    <Compile Include="src\deskpi\ModeEntry.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

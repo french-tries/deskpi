@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using deskpi.ocarinaSelector;
 using immutableSsd;
 using piCommon;
@@ -22,39 +23,68 @@ namespace deskpi
     {
         public DeskPi(GpioHandler gpioHandler, Action<object> pushEvent)
         {
-            stringWriter = ImmutableSsd.CreateMax7219BackedDisplay(gpioHandler);
+            stringWriter = ImmutableSsd.CreateMax7219BackedDisplay(gpioHandler,
+                scrollDelay: 500, endsScrollDelay: 1000);
 
-            // Todo review this
-            var modes = new Dictionary<Mode, IDeskPiMode>{
-                { Mode.Dummy1, new DummyMode(Song.ZeldasLullaby) },
-                { Mode.Dummy2, new DummyMode(Song.EponasSong) },
-                { Mode.Help, new HelpMode() },
-                { Mode.Dummy4, new DummyMode(Song.SunsSong) },
-                { Mode.Dummy5, new DummyMode(Song.SongOfTime) },
-                { Mode.Dummy6, new DummyMode(Song.SongOfStorms) },
-                { Mode.Dummy7, new DummyMode(Song.MinuetOfForest) },
-                { Mode.Dummy8, new DummyMode(Song.BoleroOfFire) },
-                { Mode.Dummy9, new DummyMode(Song.SerenadeOfWater) },
-                { Mode.Dummy10, new DummyMode(Song.NocturneOfShadow) },
-                { Mode.Dummy11, new DummyMode(Song.RequiemOfSpirit) },
-                { Mode.Dummy12, new DummyMode(Song.PreludeOfLight) },
-                { Mode.Dummy13, new DummyMode(Song.ScarecrowsSong) },
+            var modeEntries = new List<ModeEntry<ModeId>>
+            {
+                new ModeEntry<ModeId>(ModeId.Help, "About deskPi - Press middle",
+                    "What follows is how to use the thing - press middle",
+                    "Press the the top and bottom buttons to get info about " +
+                    "the different modes. Press the middle button to get different " +
+                    "info about the current mode. Press the top and bottom buttons " +
+                    "to play a song to reach a new mode. The available notes: " +
+                    "A - Bottom and middle, \u02C5 - Bottom, \u02C3 - Middle, " +
+                    "\u02C2 - top, \u02C4 - Middle and top.",
+                    Song.SariasSong),
+                new ModeEntry<ModeId>(ModeId.Dummy1, Song.ZeldasLullaby.Name,
+                    "Description", "Help Text", Song.ZeldasLullaby),
+                new ModeEntry<ModeId>(ModeId.Dummy2, Song.EponasSong.Name,
+                    "Description", "Help Text", Song.EponasSong),
+                new ModeEntry<ModeId>(ModeId.Dummy4, Song.SunsSong.Name,
+                    "Description", "Help Text", Song.SunsSong),
+                new ModeEntry<ModeId>(ModeId.Dummy5, Song.SongOfTime.Name,
+                    "Description", "Help Text", Song.SongOfTime),
+                new ModeEntry<ModeId>(ModeId.Dummy6, Song.SongOfStorms.Name,
+                    "Description", "Help Text", Song.SongOfStorms),
+                new ModeEntry<ModeId>(ModeId.Dummy7, Song.MinuetOfForest.Name,
+                    "Description", "Help Text", Song.MinuetOfForest),
+                new ModeEntry<ModeId>(ModeId.Dummy8, Song.BoleroOfFire.Name,
+                    "Description", "Help Text", Song.BoleroOfFire),
+                new ModeEntry<ModeId>(ModeId.Dummy9, Song.SerenadeOfWater.Name,
+                    "Description", "Help Text", Song.SerenadeOfWater),
+                new ModeEntry<ModeId>(ModeId.Dummy10, Song.NocturneOfShadow.Name,
+                    "Description", "Help Text", Song.NocturneOfShadow),
+                new ModeEntry<ModeId>(ModeId.Dummy11, Song.RequiemOfSpirit.Name,
+                    "Description", "Help Text", Song.RequiemOfSpirit),
+                new ModeEntry<ModeId>(ModeId.Dummy12, Song.PreludeOfLight.Name,
+                    "Description", "Help Text", Song.PreludeOfLight),
+                new ModeEntry<ModeId>(ModeId.Dummy13, Song.ScarecrowsSong.Name,
+                    "Description", "Help Text", Song.ScarecrowsSong)
+            }.ToImmutableArray();
+
+            var modes = new Dictionary<ModeId, IDeskPiMode>{
+                { ModeId.Help, new HelpMode(modeEntries) },
+                { ModeId.Dummy1, new DummyMode(Song.ZeldasLullaby) },
+                { ModeId.Dummy2, new DummyMode(Song.EponasSong) },
+                { ModeId.Dummy4, new DummyMode(Song.SunsSong) },
+                { ModeId.Dummy5, new DummyMode(Song.SongOfTime) },
+                { ModeId.Dummy6, new DummyMode(Song.SongOfStorms) },
+                { ModeId.Dummy7, new DummyMode(Song.MinuetOfForest) },
+                { ModeId.Dummy8, new DummyMode(Song.BoleroOfFire) },
+                { ModeId.Dummy9, new DummyMode(Song.SerenadeOfWater) },
+                { ModeId.Dummy10, new DummyMode(Song.NocturneOfShadow) },
+                { ModeId.Dummy11, new DummyMode(Song.RequiemOfSpirit) },
+                { ModeId.Dummy12, new DummyMode(Song.PreludeOfLight) },
+                { ModeId.Dummy13, new DummyMode(Song.ScarecrowsSong) },
             }.ToImmutableDictionary();
 
-            var songTrie = new Trie<Note, Mode>()
-                .Insert(Song.ZeldasLullaby.Notes, Mode.Dummy1)
-                .Insert(Song.EponasSong.Notes, Mode.Dummy2)
-                .Insert(Song.SariasSong.Notes, Mode.Help)
-                .Insert(Song.SunsSong.Notes, Mode.Dummy4)
-                .Insert(Song.SongOfTime.Notes, Mode.Dummy5)
-                .Insert(Song.SongOfStorms.Notes, Mode.Dummy6)
-                .Insert(Song.MinuetOfForest.Notes, Mode.Dummy7)
-                .Insert(Song.BoleroOfFire.Notes, Mode.Dummy8)
-                .Insert(Song.SerenadeOfWater.Notes, Mode.Dummy9)
-                .Insert(Song.NocturneOfShadow.Notes, Mode.Dummy10)
-                .Insert(Song.RequiemOfSpirit.Notes, Mode.Dummy11)
-                .Insert(Song.PreludeOfLight.Notes, Mode.Dummy12)
-                .Insert(Song.ScarecrowsSong.Notes, Mode.Dummy13);
+            var songTrie = new Trie<Note, ModeId>();
+
+            foreach (var entry in modeEntries)
+            {
+                songTrie = songTrie.Insert(entry.Song.Notes, entry.Mode);
+            }
 
             var keyToNote = new Dictionary<Key, Note>{
                 { Key.A, Note.Bottom },
@@ -64,7 +94,7 @@ namespace deskpi
                 { Key.E, Note.Top }
             }.ToImmutableDictionary();
 
-            ocarinaSelector = new OcarinaSelector(songTrie, keyToNote, Mode.Help, modes);
+            ocarinaSelector = new OcarinaSelector(songTrie, keyToNote, ModeId.Help, modes);
 
             void topLed(bool b) => gpioHandler.Write(20, b);
             void middleLed(bool b) => gpioHandler.Write(16, b);
