@@ -1,5 +1,5 @@
 ﻿using System;
-using deskpi.ocarinaSelector;
+using System.Collections.Immutable;
 
 namespace deskpi
 {
@@ -10,9 +10,13 @@ namespace deskpi
             this.song = song;
         }
 
-        public TextValue Text => new SimpleTextValue(song.Name);
+        public ImmutableList<(string, uint)> Text => DeskPiUtils.StringToText(song.Name);
 
-        public IDeskPiMode ReceiveKey(Key key) => this;
+        public IDeskPiMode ReceiveKey(KeyId key) => this;
+
+        public uint? NextTick(uint currentTime) => null;
+
+        public IDeskPiMode Tick(uint currentTime) => this;
 
         private readonly Song song;
     }

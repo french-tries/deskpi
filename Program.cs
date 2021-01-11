@@ -16,7 +16,7 @@ namespace deskpi
         {
             gpioHandler = new GpioHandler();
 
-            deskPi = new DeskPi(gpioHandler, events.Enqueue);
+            deskPi = DeskPiBuilder.Create(gpioHandler, events.Enqueue);
         }
 
         private void Run()

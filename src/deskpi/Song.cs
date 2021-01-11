@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace deskpi.ocarinaSelector
+namespace deskpi
 {
     public enum Note { Left, Right, Bottom, Top, A }
 

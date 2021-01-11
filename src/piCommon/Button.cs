@@ -3,9 +3,9 @@ using Optional;
 
 namespace piCommon
 {
-    public class ImmutableButton<T> : ITickable<ImmutableButton<T>>
+    public class Button<T> : IButton<T>
     {
-        public ImmutableButton(Func<ITicker> getTicker, Func<bool> read,
+        public Button(Func<ITicker> getTicker, Func<bool> read,
             Action<bool> onUpdate, T Id)
         {
             this.getTicker = getTicker;
@@ -15,7 +15,7 @@ namespace piCommon
             this.Pressed = read();
         }
 
-        private ImmutableButton(ImmutableButton<T> source, T Id,
+        private Button(Button<T> source, T Id,
             Func<ITicker> getTicker = null, Func<bool> read = null,
             Action<bool> onUpdate = null, bool? Pressed = null,
             Option<ITicker>? ticker = null)
@@ -28,10 +28,10 @@ namespace piCommon
             this.ticker = ticker ?? source.ticker;
         }
 
-        public ImmutableButton<T> OnPinValueChange() =>
-            new ImmutableButton<T>(this, Id, ticker: getTicker().Some());
+        public IButton<T> OnPinValueChange() =>
+            new Button<T>(this, Id, ticker: getTicker().Some());
 
-        public ImmutableButton<T> Tick(uint currentTime)
+        public IButton<T> Tick(uint currentTime)
         {
             var result = this;
             ticker.MatchSome((tck) => {
@@ -41,7 +41,7 @@ namespace piCommon
                     if (Pressed != newValue)
                     {
                         onUpdate(newValue);
-                        result = new ImmutableButton<T>(this, Id,
+                        result = new Button<T>(this, Id,
                             Pressed: newValue, ticker: Option.None<ITicker>());
                     }
                 }

@@ -2,65 +2,61 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Optional;
 using piCommon;
 
 namespace deskpi
 {
-    [Flags]
-    public enum Button { Bottom = 1, Middle = 2, Top = 4 }
-    public enum Key { None, A = 1, B = 2, C = 4, D = 3, E = 6, F = 5, G = 7 }
-
-    public class ButtonAggregator : ITickable<ButtonAggregator>
+    public class ButtonAggregator : IButtonAggregator
     {
-        public ButtonAggregator(IEnumerable<ImmutableButton<Button>> buttons)
+        public ButtonAggregator(Func<ITicker> getTicker, IEnumerable<IButton<ButtonId>> buttons)
         {
-            this.buttons = ImmutableDictionary<Button, ImmutableButton<Button>>.Empty.AddRange(
+            this.getTicker = getTicker;
+            this.buttons = ImmutableDictionary<ButtonId, IButton<ButtonId>>.Empty.AddRange(
                 from button in buttons 
-                select new KeyValuePair<Button, ImmutableButton<Button>>(button.Id, button));
-            this.KeyState = Key.None;
+                select new KeyValuePair<ButtonId, IButton<ButtonId>>(button.Id, button));
+            this.KeyState = KeyId.None;
     }
 
-        private ButtonAggregator(ButtonAggregator source, 
-            ImmutableDictionary<Button, ImmutableButton<Button>> buttons = null,
-            Key? Pressed = null, bool? previouslyReleased = null)
+        private ButtonAggregator(ButtonAggregator source, Func<ITicker> getTicker = null,
+            ImmutableDictionary<ButtonId, IButton<ButtonId>> buttons = null,
+            KeyId? Pressed = null, Option<ITicker>? ticker = null)
         {
+            this.getTicker = getTicker ?? source.getTicker;
             this.buttons = buttons ?? source.buttons;
             this.KeyState = Pressed ?? source.KeyState;
-            this.previouslyReleased = previouslyReleased ?? source.previouslyReleased;
+            this.ticker = ticker ?? source.ticker;
         }
 
-        private static int CountPressed(ImmutableDictionary<Button, ImmutableButton<Button>> buttons) => 
-            buttons.Values.Aggregate(0, (count, button) => button.Pressed ? count + 1 : count);
-
-        public ButtonAggregator Tick(uint currentTime)
+        public IButtonAggregator Tick(uint currentTime)
         {
             var updated = from entry in buttons
                           let newVal = entry.Value.Tick(currentTime)
                           where newVal != entry.Value
-                          select new KeyValuePair<Button, ImmutableButton<Button>>(entry.Key, newVal);
+                          select new KeyValuePair<ButtonId, IButton<ButtonId>>(entry.Key, newVal);
 
             if (!updated.Any())
             {
-                return this;
+                var result = this;
+                ticker.MatchSome((tck) => {
+                    if (tck.Ticked(currentTime))
+                    {
+                        result = new ButtonAggregator(this, Pressed: ButtonsToKey(), 
+                            ticker: Option.None<ITicker>());
+                    }
+                });
+                return result;
             }
-            var buttonsN = buttons.SetItems(updated);
-
-            if (CountPressed(buttons) <= CountPressed(buttonsN))
-            {
-                return new ButtonAggregator(this, buttonsN, Key.None, false);
-            }
-            if (!previouslyReleased)
-            {
-                return new ButtonAggregator(this, buttonsN, ButtonsToKey(), true);
-            }
-            return new ButtonAggregator(this, buttonsN, Key.None, true);
+            return new ButtonAggregator(this, buttons: buttons.SetItems(updated), 
+                ticker: getTicker().SomeNotNull());
         }
 
         public uint? NextTick(uint currentTime) =>
-            buttons.Values.Min((button) => button.NextTick(currentTime));
+            PiUtils.Min(PiUtils.NextTick(ticker, currentTime), 
+                buttons.Values.Min((button) => button.NextTick(currentTime)));
 
 
-        public ButtonAggregator OnPinValueChange(Button button)
+        public IButtonAggregator OnPinValueChange(ButtonId button)
         {
             if (!buttons.ContainsKey(button))
             {
@@ -68,26 +64,29 @@ namespace deskpi
                 return this;
             }
             return new ButtonAggregator(this, 
-                buttons.SetItem(button, buttons[button].OnPinValueChange()));
+                buttons: buttons.SetItem(button, buttons[button].OnPinValueChange()));
         }
 
-        public Key KeyState { get; }
+        public KeyId KeyState { get; }
 
-        private readonly ImmutableDictionary<Button, ImmutableButton<Button>> buttons;
-
-        private readonly bool previouslyReleased;
-
-        private Key ButtonsToKey()
+        private KeyId ButtonsToKey()
         {
             var pressed = from button in buttons.Values where button.Pressed select (int)button.Id;
             var sum = pressed.Sum();
 
-            if (sum < 0 || sum > (int)Key.G)
+            if (sum < 0 || sum > (int)KeyId.G)
             {
                 Console.WriteLine($"Error in ButtonsToKey");
-                return Key.None;
+                return KeyId.None;
             }
-            return (Key)sum;
+            return (KeyId)sum;
         }
+
+        private static int CountPressed(ImmutableDictionary<ButtonId, IButton<ButtonId>> buttons) =>
+            buttons.Values.Aggregate(0, (count, button) => button.Pressed ? count + 1 : count);
+
+        private readonly Func<ITicker> getTicker;
+        private readonly ImmutableDictionary<ButtonId, IButton<ButtonId>> buttons;
+        private readonly Option<ITicker> ticker = Option.None<ITicker>();
     }
 }

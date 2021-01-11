@@ -6,7 +6,7 @@ namespace immutableSsd
 {
     public static class ImmutableSsd
     {
-        public static StringSsdWriter CreateMax7219BackedDisplay(
+        public static ISsd CreateMax7219BackedDisplay(
             GpioHandler gpioHandler, uint scrollDelay = 1000, uint endsScrollDelay = 2000)
         {
             var directWriter = new Max7219CommonAnodeWriter((obj) => gpioHandler.SpiWrite(obj));

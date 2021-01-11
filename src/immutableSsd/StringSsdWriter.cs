@@ -6,7 +6,7 @@ using piCommon;
 namespace immutableSsd
 {
     // todo check interfaces everywhere
-    public class StringSsdWriter : ITickable<StringSsdWriter>
+    public class StringSsdWriter : ISsd
     {
         public delegate byte GlyphToSegments(Glyph glyph);
 
@@ -33,7 +33,7 @@ namespace immutableSsd
                 (result, selector) => result.Concat(selector.GetSelected()).ToImmutableList()
         );
 
-        public StringSsdWriter Write(string text)
+        public ISsd Write(string text)
         {
             var newValues = Glyph.FromString(text).ConvertAll((g) => converter(g));
 
@@ -46,7 +46,7 @@ namespace immutableSsd
         }
 
         // todo would be more useful with fractions of total digits...
-        public StringSsdWriter Write(ImmutableList<(string, uint)> texts)
+        public ISsd Write(ImmutableList<(string, uint)> texts)
         {
             var newSelectors = ImmutableList<ISelector<byte>>.Empty;
             var availableDigits = writer.AvailableDigits;
@@ -73,7 +73,7 @@ namespace immutableSsd
             PiUtils.Min(writer.NextTick(currentTime),
                 selectors.Min((button) => button.NextTick(currentTime)));
 
-        public StringSsdWriter Tick(uint currentTime)
+        public ISsd Tick(uint currentTime)
         {
             var selectorsN = (from entry in selectors 
                           let newVal = entry.Tick(currentTime)

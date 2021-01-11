@@ -1,20 +1,26 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Optional;
 
 namespace piCommon
 {
     public static class PiUtils
     {
-        public static uint? Min(uint? first, uint? second)
+        public static uint? Min(params uint?[] values)
         {
-            if (!first.HasValue) return second;
-            if (!second.HasValue) return first;
+            var nonNulls = from value in values
+            where value.HasValue
+            select value.Value;
 
-            return first < second ? first : second;
+            if (!nonNulls.Any())
+            {
+                return null;
+            }
+            return nonNulls.Min();
         }
 
-        public static uint? NextTick(Option<ITicker> ticker, uint currentTime)
+        public static uint? NextTick(Option<ITicker> ticker, uint currentTime  )
         {
             uint? result = null;
             ticker.MatchSome((tck) => result = tck.Remaining(currentTime));

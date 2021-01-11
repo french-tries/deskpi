@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Optional;
 
-namespace deskpi.ocarinaSelector
+namespace piCommon
 {
     public class Trie<K, T>
     {

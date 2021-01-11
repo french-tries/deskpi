@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
-using deskpi.ocarinaSelector;
+using piCommon;
 
 namespace deskpi
 {
@@ -8,12 +8,12 @@ namespace deskpi
     {
         private enum Field { Name, Description, HelpText, SongName, SongNotes, Max };
 
-        public HelpMode(ImmutableArray<ModeEntry<ModeId>> modes)
+        public HelpMode(ImmutableDictionary<ModeId, ModeData> modes)
         {
-            this.modes = modes;
+            this.modes = ImmutableArray<ModeData>.Empty.AddRange(modes.Values);
         }
 
-        private HelpMode(ImmutableArray<ModeEntry<ModeId>> modes,
+        private HelpMode(ImmutableArray<ModeData> modes,
             int currentMode, Field currentField)
         {
             this.modes = modes;
@@ -21,7 +21,7 @@ namespace deskpi
             this.currentField = currentField;
         }
 
-        TextValue IDeskPiMode.Text {
+        public ImmutableList<(string, uint)> Text {
             get
             {
                 var text = "";
@@ -43,25 +43,25 @@ namespace deskpi
                         text = Song.NotesToString(modes[currentMode].Song.Notes);
                         break;
                 }
-                return new SimpleTextValue(text);
+                return DeskPiUtils.StringToText(text);
             }
         }
 
-        public IDeskPiMode ReceiveKey(Key key)
+        public IDeskPiMode ReceiveKey(KeyId key)
         {
             var result = this;
             switch (key)
             {
-                case Key.A:
+                case KeyId.A:
                     result = new HelpMode(modes, 
                         currentMode <= 0 ? modes.Length - 1 : currentMode - 1,
                         Field.Name);
                     break;
-                case Key.B:
+                case KeyId.B:
                     result = new HelpMode(modes, currentMode,
                         currentField + 1 >= Field.Max ? Field.Name : currentField + 1);
                     break;
-                case Key.C:
+                case KeyId.C:
                     result = new HelpMode(modes,
                         currentMode + 1 >= modes.Length ? 0 : currentMode + 1,
                         Field.Name);
@@ -70,7 +70,11 @@ namespace deskpi
             return result;
         }
 
-        private readonly ImmutableArray<ModeEntry<ModeId>> modes;
+        public uint? NextTick(uint currentTime) => null;
+
+        public IDeskPiMode Tick(uint currentTime) => this;
+
+        private readonly ImmutableArray<ModeData> modes;
         private readonly int currentMode = 0;
         private readonly Field currentField = Field.Name;
     }

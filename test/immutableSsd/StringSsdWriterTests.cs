@@ -12,7 +12,7 @@ namespace immutableSsd.test
         public void WriteString_Writes()
         {
             var testWriter = new SsdWriterStub<byte>();
-            var stringWriter = new StringSsdWriter(testWriter,
+            ISsd stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character, 
                 (arg1, arg2) => new SelectorStub<byte> { Text = arg1 });
 
@@ -27,7 +27,7 @@ namespace immutableSsd.test
         public void Write_MultipleStrings_Writes()
         {
             var testWriter = new SsdWriterStub<byte>();
-            var stringWriter = new StringSsdWriter(testWriter,
+            ISsd stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character,
                 (arg1, arg2) => new SelectorStub<byte> { Text = arg1 });
 
@@ -43,7 +43,7 @@ namespace immutableSsd.test
         public void Write_NotEnoughSpace_WritesFirsts()
         {
             var testWriter = new SsdWriterStub<byte>();
-            var stringWriter = new StringSsdWriter(testWriter,
+            ISsd stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character,
                 (arg1, arg2) => new SelectorStub<byte> { Text = arg1 });
 
@@ -60,7 +60,7 @@ namespace immutableSsd.test
         {
             var testWriter = new SsdWriterStub<byte>();
             var testSelector = new SelectorStub<byte>();
-            var stringWriter = new StringSsdWriter(testWriter,
+            ISsd stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character,
                 (arg1, arg2) => {testSelector.Text = arg1; return testSelector; });
 
@@ -78,7 +78,7 @@ namespace immutableSsd.test
         public void ReceiveInterrupt_onWriter_ReceivesIt()
         {
             var testWriter = new SsdWriterStub<byte>();
-            var stringWriter = new StringSsdWriter(testWriter,
+            ISsd stringWriter = new StringSsdWriter(testWriter,
                 (Glyph g) => (byte)g.Character,
                 (arg1, arg2) => new SelectorStub<byte> { Text = arg1 });
 
