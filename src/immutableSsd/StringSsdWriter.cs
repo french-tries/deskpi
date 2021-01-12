@@ -5,7 +5,6 @@ using piCommon;
 
 namespace immutableSsd
 {
-    // todo check interfaces everywhere
     public class StringSsdWriter : ISsd
     {
         public delegate byte GlyphToSegments(Glyph glyph);

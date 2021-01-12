@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
 using piCommon;
 
@@ -8,7 +9,8 @@ namespace deskpi
     {
         private enum Field { Name, Description, HelpText, SongName, SongNotes, Max };
 
-        public HelpMode(ImmutableDictionary<ModeId, ModeData> modes)
+        public HelpMode(ImmutableDictionary<ModeId, ModeData> modes,
+            ModeId defaultMode = ModeId.Help)
         {
             this.modes = modes;
 
@@ -17,7 +19,7 @@ namespace deskpi
                        select id;
 
             ids = ImmutableArray<ModeId>.Empty.AddRange(keys);
-            currentMode = ids.IndexOf(ModeId.Help);
+            currentMode = ids.IndexOf(defaultMode);
             if (currentMode == -1)
             {
                 currentMode = 0;

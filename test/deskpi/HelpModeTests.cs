@@ -43,7 +43,7 @@ namespace deskpi.test
                 { ModeId.Help, new ModeData("3", "Description", "Help", Song.ZeldasLullaby)}
             }.ToImmutableDictionary();
 
-            IDeskPiMode deskPiMode = new HelpMode(modesData);
+            IDeskPiMode deskPiMode = new HelpMode(modesData, ModeId.Dummy1);
             Assert.AreEqual(modesData[ModeId.Dummy1].Name, deskPiMode.Text[0].Item1);
 
             deskPiMode = deskPiMode.ReceiveKey(KeyId.A);
@@ -65,7 +65,7 @@ namespace deskpi.test
                 { ModeId.Help, new ModeData("3", "Description", "Help", Song.ZeldasLullaby)}
             }.ToImmutableDictionary();
 
-            IDeskPiMode deskPiMode = new HelpMode(modesData);
+            IDeskPiMode deskPiMode = new HelpMode(modesData, ModeId.Dummy1);
             Assert.AreEqual(modesData[ModeId.Dummy1].Name, deskPiMode.Text[0].Item1);
 
             deskPiMode = deskPiMode.ReceiveKey(KeyId.C);
