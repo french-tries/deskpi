@@ -74,10 +74,16 @@ namespace deskpi
 
         public IDeskPiMode Tick(uint currentTime)
         {
-            var updated = from entry in innerModes
-                          let newVal = entry.Value.Tick(currentTime)
-                          where newVal != entry.Value
-                          select new KeyValuePair<ModeId, IDeskPiMode>(entry.Key, newVal);
+            var updated = new List<KeyValuePair<ModeId, IDeskPiMode>>();
+
+            foreach (var entry in innerModes)
+            {
+                var modeN = entry.Value.Tick(currentTime);
+                if (modeN != entry.Value)
+                {
+                    updated.Add(new KeyValuePair<ModeId, IDeskPiMode>(entry.Key, modeN));
+                }
+            }
 
             if (!updated.Any())
             {

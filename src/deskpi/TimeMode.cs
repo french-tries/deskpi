@@ -29,16 +29,12 @@ namespace deskpi
         public uint? NextTick(uint currentTime) =>
             (uint?)(now().Minute == displayTime.Minute ? 1000 : 0);
 
-        // todo called 2 times per minute
         public IDeskPiMode Tick(uint currentTicks)
         {
             var currentTime = now();
 
             if (currentTime.Minute != displayTime.Minute)
             {
-                Console.WriteLine($"{displayTime:MM.ddHH.mm}");
-                Console.WriteLine($"{currentTime:MM.ddHH.mm}");
-
                 return new TimeMode(this, displayTime: currentTime);
             }
             return this;
