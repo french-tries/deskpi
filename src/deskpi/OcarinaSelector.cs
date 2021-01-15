@@ -10,12 +10,15 @@ namespace deskpi
     {
         private readonly Trie<Note, Func<DeskPiMode, DeskPiMode>> songTrie;
         private readonly ImmutableDictionary<KeyId, Note> keyToNote;
+        private readonly Func<DeskPiMode, DeskPiMode> createIntroMode;
         private readonly ImmutableList<Note> receivedNotes = ImmutableList<Note>.Empty;
 
-        public OcarinaSelector(ImmutableDictionary<ModeId, ModeData> modesData,
+        public OcarinaSelector(ModeData data, 
+            ImmutableDictionary<ModeId, ModeData> modesData,
             ImmutableDictionary<ModeId, Func<DeskPiMode, DeskPiMode>> modes,
-            ImmutableDictionary<KeyId, Note> keyToNote)
-            : base(() => new OcarinaSelector(modesData, modes, keyToNote))
+            ImmutableDictionary<KeyId, Note> keyToNote,
+            Func<DeskPiMode, DeskPiMode> createIntroMode)
+            : base(() => new OcarinaSelector(data, modesData, modes, keyToNote, createIntroMode), data)
         {
             CheckOrphans(modesData, modes);
 
@@ -30,16 +33,19 @@ namespace deskpi
             }
 
             this.keyToNote = keyToNote;
+            this.createIntroMode = createIntroMode;
             this.receivedNotes = ImmutableList<Note>.Empty;
         }
 
         private OcarinaSelector(OcarinaSelector source,
             Trie<Note, Func<DeskPiMode, DeskPiMode>> songTrie = null,
             ImmutableDictionary<KeyId, Note> keyToNote = null,
+            Func<DeskPiMode, DeskPiMode> createIntroMode = null,
             ImmutableList<Note> receivedNotes = null) : base(source)
         {
             this.songTrie = songTrie ?? source.songTrie;
             this.keyToNote = keyToNote ?? source.keyToNote;
+            this.createIntroMode = createIntroMode ?? source.createIntroMode;
             this.receivedNotes = receivedNotes ?? source.receivedNotes;
         }
 
@@ -61,7 +67,8 @@ namespace deskpi
             return modeN.Match(
                 (arg) =>
                 {
-                    return arg(new OcarinaSelector(this, receivedNotes: ImmutableList<Note>.Empty));
+                    return createIntroMode(arg(
+                        new OcarinaSelector(this, receivedNotes: ImmutableList<Note>.Empty)));
                 },
                 () =>
                 {

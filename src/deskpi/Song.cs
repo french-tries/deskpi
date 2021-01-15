@@ -70,6 +70,8 @@ namespace deskpi
         {Note.Left, Note.Left, Note.Left, Note.Left, Note.Left, Note.Left, Note.Left, Note.Left}
         .ToImmutableList());
 
+        public static Song EmptySong = new Song("No Song", ImmutableList<Note>.Empty);
+
         public static char NoteToChar(Note note)
         {
             switch (note)

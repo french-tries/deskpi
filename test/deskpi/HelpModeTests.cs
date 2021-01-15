@@ -15,7 +15,8 @@ namespace deskpi.test
                 { ModeId.Help, new ModeData("Name", "Description", "Help", Song.ZeldasLullaby)}
             }.ToImmutableDictionary();
 
-            DeskPiMode deskPiMode = new HelpMode(() => null, modesData);
+            var modeData = new ModeData("", "", "", Song.EmptySong);
+            DeskPiMode deskPiMode = new HelpMode(() => null, modeData, modesData);
             Assert.AreEqual(modesData[ModeId.Help].Name, deskPiMode.Text[0].Item1);
 
             deskPiMode = deskPiMode.ReceiveKey(KeyId.B);
@@ -43,7 +44,8 @@ namespace deskpi.test
                 { ModeId.Help, new ModeData("3", "Description", "Help", Song.ZeldasLullaby)}
             }.ToImmutableDictionary();
 
-            DeskPiMode deskPiMode = new HelpMode(() => null, modesData, ModeId.Dummy1);
+            var modeData = new ModeData("", "", "", Song.EmptySong);
+            DeskPiMode deskPiMode = new HelpMode(() => null, modeData, modesData, ModeId.Dummy1);
             Assert.AreEqual(modesData[ModeId.Dummy1].Name, deskPiMode.Text[0].Item1);
 
             deskPiMode = deskPiMode.ReceiveKey(KeyId.A);
@@ -65,7 +67,8 @@ namespace deskpi.test
                 { ModeId.Help, new ModeData("3", "Description", "Help", Song.ZeldasLullaby)}
             }.ToImmutableDictionary();
 
-            DeskPiMode deskPiMode = new HelpMode(() => null, modesData, ModeId.Dummy1);
+            var modeData = new ModeData("", "", "", Song.EmptySong);
+            DeskPiMode deskPiMode = new HelpMode(() => null, modeData, modesData, ModeId.Dummy1);
             Assert.AreEqual(modesData[ModeId.Dummy1].Name, deskPiMode.Text[0].Item1);
 
             deskPiMode = deskPiMode.ReceiveKey(KeyId.C);
@@ -87,7 +90,8 @@ namespace deskpi.test
                 { ModeId.Help, new ModeData("3", "Description", "Help", Song.ZeldasLullaby)}
             }.ToImmutableDictionary();
 
-            DeskPiMode deskPiMode = new HelpMode(() => null, modesData, ModeId.Dummy1);
+            var modeData = new ModeData("", "", "", Song.EmptySong);
+            DeskPiMode deskPiMode = new HelpMode(() => null, modeData, modesData, ModeId.Dummy1);
 
             var deskPiModeN = deskPiMode.ReceiveKey(KeyId.F);
 

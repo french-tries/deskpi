@@ -27,7 +27,8 @@ namespace deskpi.test
             using (StringWriter sw = new StringWriter())
             {
                 Console.SetOut(sw);
-                var selector = new OcarinaSelector(modesData, modes, keyToNote);
+                var modeData = new ModeData("", "", "", Song.EmptySong);
+                var selector = new OcarinaSelector(modeData, modesData, modes, keyToNote, (x) => null);
 
                 Assert.AreEqual($"Orphaned mode with ID {ModeId.Help}\n", sw.ToString());
             }
@@ -46,7 +47,8 @@ namespace deskpi.test
                 {KeyId.A, Note.A },
             }.ToImmutableDictionary();
 
-            DeskPiMode selector = new OcarinaSelector(modesData, modes, keyToNote);
+            var modeData = new ModeData("", "", "", Song.EmptySong);
+            DeskPiMode selector = new OcarinaSelector(modeData, modesData, modes, keyToNote, (x) => null);
 
             foreach (var key in keys)
             {
@@ -72,7 +74,8 @@ namespace deskpi.test
                 {KeyId.A, Note.A },
             }.ToImmutableDictionary();
 
-            var selector = new OcarinaSelector(modesData, modes, keyToNote)
+            var modeData = new ModeData("", "", "", Song.EmptySong);
+            var selector = new OcarinaSelector(modeData, modesData, modes, keyToNote, (x) => x)
                 .ReceiveKey(KeyId.A);
 
             Assert.AreEqual("test", selector.Text[0].Item1);

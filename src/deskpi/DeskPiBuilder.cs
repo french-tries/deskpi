@@ -6,6 +6,12 @@ using piCommon;
 
 namespace deskpi
 {
+    public enum ModeId
+    {
+        Selector, Dummy1, Dummy2, Help, Dummy4, Time, Dummy6, Dummy7,
+        Dummy8, Dummy9, Dummy10, Dummy11, Dummy12, Dummy13
+    }
+
     public static class DeskPiBuilder
     {
         public static DeskPi Create(GpioHandler gpioHandler, Action<object> pushEvent)
@@ -52,20 +58,20 @@ namespace deskpi
 
             // todo ???
             var modes = new Dictionary<ModeId, Func<DeskPiMode, DeskPiMode>>{
-                { ModeId.Help, (sel) => new HelpMode(() => sel, modesData) },
-                { ModeId.Dummy1, (sel) => new DummyMode(() => sel, Song.ZeldasLullaby) },
-                { ModeId.Dummy2, (sel) => new DummyMode(() => sel, Song.EponasSong) },
-                { ModeId.Dummy4, (sel) => new DummyMode(() => sel, Song.SunsSong) },
-                { ModeId.Time, (sel) => new TimeMode(() => sel, () => DateTime.Now,
+                { ModeId.Help, (sel) => new HelpMode(() => sel, modesData[ModeId.Help], modesData) },
+                { ModeId.Dummy1, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy1], Song.ZeldasLullaby) },
+                { ModeId.Dummy2, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy2], Song.EponasSong) },
+                { ModeId.Dummy4, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy4], Song.SunsSong) },
+                { ModeId.Time, (sel) => new TimeMode(() => sel, modesData[ModeId.Time], () => DateTime.Now,
                     (i) => new Ticker(i, gpioHandler.Millis))},
-                { ModeId.Dummy6, (sel) => new DummyMode(() => sel, Song.SongOfStorms) },
-                { ModeId.Dummy7, (sel) => new DummyMode(() => sel, Song.MinuetOfForest) },
-                { ModeId.Dummy8, (sel) => new DummyMode(() => sel, Song.BoleroOfFire) },
-                { ModeId.Dummy9, (sel) => new DummyMode(() => sel, Song.SerenadeOfWater) },
-                { ModeId.Dummy10, (sel) => new DummyMode(() => sel, Song.NocturneOfShadow) },
-                { ModeId.Dummy11, (sel) => new DummyMode(() => sel, Song.RequiemOfSpirit) },
-                { ModeId.Dummy12, (sel) => new DummyMode(() => sel, Song.PreludeOfLight) },
-                { ModeId.Dummy13, (sel) => new DummyMode(() => sel, Song.ScarecrowsSong) },
+                { ModeId.Dummy6, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy6], Song.SongOfStorms) },
+                { ModeId.Dummy7, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy7], Song.MinuetOfForest) },
+                { ModeId.Dummy8, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy8], Song.BoleroOfFire) },
+                { ModeId.Dummy9, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy9], Song.SerenadeOfWater) },
+                { ModeId.Dummy10, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy10], Song.NocturneOfShadow) },
+                { ModeId.Dummy11, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy11], Song.RequiemOfSpirit) },
+                { ModeId.Dummy12, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy12], Song.PreludeOfLight) },
+                { ModeId.Dummy13, (sel) => new DummyMode(() => sel, modesData[ModeId.Dummy13], Song.ScarecrowsSong) },
             }.ToImmutableDictionary();
 
             var keyToNote = new Dictionary<KeyId, Note>{
@@ -76,7 +82,10 @@ namespace deskpi
                 {KeyId.E, Note.Top }
             }.ToImmutableDictionary();
 
-            var ocarinaSelector = new OcarinaSelector(modesData, modes, keyToNote);
+            var selectorData = new ModeData("Selector", "", "", Song.EmptySong);
+            var ocarinaSelector = new OcarinaSelector(
+                selectorData, modesData, modes, keyToNote,
+                (arg) => new IntroMode(arg, () => new Ticker(5000, gpioHandler.Millis)));
 
             void topLed(bool b) => gpioHandler.Write(20, b);
             void middleLed(bool b) => gpioHandler.Write(16, b);

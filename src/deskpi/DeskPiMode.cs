@@ -3,17 +3,14 @@ using System.Collections.Immutable;
 
 namespace deskpi
 {
-    public enum ModeId
-    {
-        Selector, Dummy1, Dummy2, Help, Dummy4, Time, Dummy6, Dummy7,
-        Dummy8, Dummy9, Dummy10, Dummy11, Dummy12, Dummy13
-    }
-
     public abstract class DeskPiMode
     {
-        protected DeskPiMode(Func<DeskPiMode> buildSelector)
+        private readonly Func<DeskPiMode> buildSelector;
+
+        protected DeskPiMode(Func<DeskPiMode> buildSelector, ModeData data)
         {
             this.buildSelector = buildSelector;
+            this.Data = data;
         }
 
         protected DeskPiMode(DeskPiMode source)
@@ -23,7 +20,6 @@ namespace deskpi
 
         public abstract uint? NextTick(uint currentTime);
         public abstract ImmutableList<(string, uint)> Text { get; }
-
         public abstract DeskPiMode Tick(uint currentTicks);
 
         public DeskPiMode ReceiveKey(KeyId key)
@@ -37,8 +33,6 @@ namespace deskpi
 
         protected abstract DeskPiMode ReceiveKeyImpl(KeyId key);
 
-        public ModeId Id { get; }
-
-        private readonly Func<DeskPiMode> buildSelector;
+        public ModeData Data { get; }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
-using piCommon;
 
 namespace deskpi
 {
@@ -9,8 +8,9 @@ namespace deskpi
     {
         private enum Field { Name, Description, HelpText, SongName, SongNotes, Max };
 
-        public HelpMode(Func<DeskPiMode> buildSelector, ImmutableDictionary<ModeId, ModeData> modes,
-            ModeId defaultMode = ModeId.Help) : base(buildSelector)
+        public HelpMode(Func<DeskPiMode> buildSelector, ModeData data,
+            ImmutableDictionary<ModeId, ModeData> modes,
+            ModeId defaultMode = ModeId.Help) : base(buildSelector, data)
         {
             this.modes = modes;
 

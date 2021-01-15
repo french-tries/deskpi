@@ -8,8 +8,9 @@ namespace deskpi
     public class TimeMode : DeskPiMode
     {
         // todo getTicker should use millis received in deskpi tick, check elsewhere?
-        public TimeMode(Func<DeskPiMode> buildSelector, Func<DateTime> now, Func<uint, ITicker> getTicker)
-            : base(buildSelector)
+        public TimeMode(Func<DeskPiMode> buildSelector, ModeData data,
+            Func<DateTime> now, Func<uint, ITicker> getTicker)
+            : base(buildSelector, data)
         {
             this.now = now;
             this.displayTime = now();

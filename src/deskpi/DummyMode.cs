@@ -5,7 +5,7 @@ namespace deskpi
 {
     public class DummyMode : DeskPiMode
     {
-        public DummyMode(Func<DeskPiMode> buildSelector, Song song) : base(buildSelector)
+        public DummyMode(Func<DeskPiMode> buildSelector, ModeData data, Song song) : base(buildSelector, data)
         {
             this.song = song;
         }

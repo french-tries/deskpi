@@ -5,7 +5,7 @@ namespace deskpi.test.stubs
 {
     public class DeskPiModeStub : DeskPiMode
     {
-        public DeskPiModeStub() : base(() => null)
+        public DeskPiModeStub() : base(() => null, new ModeData("", "", "", Song.EmptySong))
         {
             Next = this;
         }

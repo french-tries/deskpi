@@ -12,7 +12,9 @@ namespace deskpi.test
         {
             var now = DateTime.Now;
             uint ticks = 0;
-            var mode = new TimeMode(()=> null, () => now, (arg) => new Ticker(arg, ticks));
+            var modeData = new ModeData("", "", "", Song.EmptySong);
+            var mode = new TimeMode(()=> null, modeData, 
+                () => now, (arg) => new Ticker(arg, ticks));
 
             Assert.AreEqual($"{now:MM.ddHH.mm}", mode.Text[0].Item1);
         }
