@@ -15,7 +15,7 @@ namespace deskpi.test
                 { ModeId.Help, new ModeData("Name", "Description", "Help", Song.ZeldasLullaby)}
             }.ToImmutableDictionary();
 
-            IDeskPiMode deskPiMode = new HelpMode(modesData);
+            DeskPiMode deskPiMode = new HelpMode(() => null, modesData);
             Assert.AreEqual(modesData[ModeId.Help].Name, deskPiMode.Text[0].Item1);
 
             deskPiMode = deskPiMode.ReceiveKey(KeyId.B);
@@ -43,7 +43,7 @@ namespace deskpi.test
                 { ModeId.Help, new ModeData("3", "Description", "Help", Song.ZeldasLullaby)}
             }.ToImmutableDictionary();
 
-            IDeskPiMode deskPiMode = new HelpMode(modesData, ModeId.Dummy1);
+            DeskPiMode deskPiMode = new HelpMode(() => null, modesData, ModeId.Dummy1);
             Assert.AreEqual(modesData[ModeId.Dummy1].Name, deskPiMode.Text[0].Item1);
 
             deskPiMode = deskPiMode.ReceiveKey(KeyId.A);
@@ -65,7 +65,7 @@ namespace deskpi.test
                 { ModeId.Help, new ModeData("3", "Description", "Help", Song.ZeldasLullaby)}
             }.ToImmutableDictionary();
 
-            IDeskPiMode deskPiMode = new HelpMode(modesData, ModeId.Dummy1);
+            DeskPiMode deskPiMode = new HelpMode(() => null, modesData, ModeId.Dummy1);
             Assert.AreEqual(modesData[ModeId.Dummy1].Name, deskPiMode.Text[0].Item1);
 
             deskPiMode = deskPiMode.ReceiveKey(KeyId.C);
@@ -76,6 +76,22 @@ namespace deskpi.test
 
             deskPiMode = deskPiMode.ReceiveKey(KeyId.C);
             Assert.AreEqual(modesData[ModeId.Dummy1].Name, deskPiMode.Text[0].Item1);
+        }
+
+        [TestCase]
+        public void ReceivedKey_F_GoesToSelectorMode()
+        {
+            var modesData = new Dictionary<ModeId, ModeData>{
+                { ModeId.Dummy1, new ModeData("1", "Description", "Help", Song.ZeldasLullaby)},
+                { ModeId.Dummy2, new ModeData("2", "Description", "Help", Song.ZeldasLullaby)},
+                { ModeId.Help, new ModeData("3", "Description", "Help", Song.ZeldasLullaby)}
+            }.ToImmutableDictionary();
+
+            DeskPiMode deskPiMode = new HelpMode(() => null, modesData, ModeId.Dummy1);
+
+            var deskPiModeN = deskPiMode.ReceiveKey(KeyId.F);
+
+            Assert.IsNull(deskPiModeN);
         }
     }
 }

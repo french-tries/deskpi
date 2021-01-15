@@ -5,31 +5,32 @@ using piCommon;
 
 namespace deskpi
 {
-    public class TimeMode : IDeskPiMode
+    public class TimeMode : DeskPiMode
     {
         // todo getTicker should use millis received in deskpi tick, check elsewhere?
-        public TimeMode(Func<DateTime> now, Func<uint, ITicker> getTicker)
+        public TimeMode(Func<DeskPiMode> buildSelector, Func<DateTime> now, Func<uint, ITicker> getTicker)
+            : base(buildSelector)
         {
             this.now = now;
             this.displayTime = now();
         }
 
         private TimeMode(TimeMode source, Func<DateTime> now = null,
-            DateTime? displayTime = null)
+            DateTime? displayTime = null) : base(source)
         {
             this.now = now ?? source.now;
             this.displayTime = displayTime ?? source.displayTime;
         }
 
-        public ImmutableList<(string, uint)> Text => DeskPiUtils.StringToText(
+        public override ImmutableList<(string, uint)> Text => DeskPiUtils.StringToText(
             $"{displayTime:MM.ddHH.mm}");
 
-        public IDeskPiMode ReceiveKey(KeyId key) => this;
+        protected override DeskPiMode ReceiveKeyImpl(KeyId key) => this;
 
-        public uint? NextTick(uint currentTime) =>
+        public override uint? NextTick(uint currentTime) =>
             (uint?)(now().Minute == displayTime.Minute ? 1000 : 0);
 
-        public IDeskPiMode Tick(uint currentTicks)
+        public override DeskPiMode Tick(uint currentTicks)
         {
             var currentTime = now();
 

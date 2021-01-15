@@ -5,12 +5,12 @@ using piCommon;
 
 namespace deskpi
 {
-    public class HelpMode : IDeskPiMode
+    public class HelpMode : DeskPiMode
     {
         private enum Field { Name, Description, HelpText, SongName, SongNotes, Max };
 
-        public HelpMode(ImmutableDictionary<ModeId, ModeData> modes,
-            ModeId defaultMode = ModeId.Help)
+        public HelpMode(Func<DeskPiMode> buildSelector, ImmutableDictionary<ModeId, ModeData> modes,
+            ModeId defaultMode = ModeId.Help) : base(buildSelector)
         {
             this.modes = modes;
 
@@ -29,7 +29,7 @@ namespace deskpi
         private HelpMode(HelpMode source, 
             ImmutableDictionary<ModeId, ModeData> modes = null,
             ImmutableArray<ModeId>? ids = null, int? currentMode = null, 
-            Field? currentField = null)
+            Field? currentField = null) : base(source)
         {
             this.modes = modes ?? source.modes;
             this.ids = ids ?? source.ids;
@@ -37,7 +37,7 @@ namespace deskpi
             this.currentField = currentField ?? source.currentField;
         }
 
-        public ImmutableList<(string, uint)> Text {
+        public override ImmutableList<(string, uint)> Text {
             get
             {
                 var text = "";
@@ -63,7 +63,7 @@ namespace deskpi
             }
         }
 
-        public IDeskPiMode ReceiveKey(KeyId key)
+        protected override DeskPiMode ReceiveKeyImpl(KeyId key)
         {
             var result = this;
             switch (key)
@@ -86,9 +86,9 @@ namespace deskpi
             return result;
         }
 
-        public uint? NextTick(uint currentTime) => null;
+        public override uint? NextTick(uint currentTime) => null;
 
-        public IDeskPiMode Tick(uint currentTime) => this;
+        public override DeskPiMode Tick(uint currentTicks) => this;
 
         private readonly ImmutableDictionary<ModeId, ModeData> modes;
         private readonly ImmutableArray<ModeId> ids;

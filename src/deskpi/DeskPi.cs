@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using immutableSsd;
@@ -21,13 +20,13 @@ namespace deskpi
     public class DeskPi : ITickable<DeskPi>
     {
         public DeskPi(ISsd stringWriter,
-            IButtonAggregator buttonAggregator, IDeskPiMode ocarinaSelector)
+            IButtonAggregator buttonAggregator, DeskPiMode currentMode)
         {
             this.stringWriter = stringWriter;
             this.buttonAggregator = buttonAggregator;
-            this.ocarinaSelector = ocarinaSelector;
+            this.currentMode = currentMode;
 
-            this.stringWriter = Write(this.stringWriter, ocarinaSelector.Text);
+            this.stringWriter = Write(this.stringWriter, currentMode.Text);
 
             Console.WriteLine("Start");
         }
@@ -35,11 +34,11 @@ namespace deskpi
         private DeskPi(DeskPi source,
             ISsd stringWriter = null,
             IButtonAggregator buttonAggregator = null,
-            IDeskPiMode ocarinaSelector = null)
+            DeskPiMode currentMode = null)
         {
             this.stringWriter = stringWriter ?? source.stringWriter;
             this.buttonAggregator = buttonAggregator ?? source.buttonAggregator;
-            this.ocarinaSelector = ocarinaSelector ?? source.ocarinaSelector;
+            this.currentMode = currentMode ?? source.currentMode;
         }
 
         public DeskPi ReceiveEvent(object ev)
@@ -58,30 +57,30 @@ namespace deskpi
             PiUtils.Min(
                 buttonAggregator.NextTick(currentTime), 
                 stringWriter.NextTick(currentTime),
-                ocarinaSelector.NextTick(currentTime));
+                currentMode.NextTick(currentTime));
 
         public DeskPi Tick(uint currentTime)
         {
             var buttonAggregatorN = buttonAggregator.Tick(currentTime);
-            var ocarinaSelectorN = ocarinaSelector.Tick(currentTime);
+            var currentModeN = currentMode.Tick(currentTime);
 
             if (buttonAggregator.KeyState != buttonAggregatorN.KeyState)
             {
-                ocarinaSelectorN = ocarinaSelectorN.ReceiveKey(buttonAggregatorN.KeyState);
+                currentModeN = currentModeN.ReceiveKey(buttonAggregatorN.KeyState);
             }
 
-            var stringWriterN = ocarinaSelector.Text.SequenceEqual(ocarinaSelectorN.Text) ?
+            var stringWriterN = currentMode.Text.SequenceEqual(currentModeN.Text) ?
                 stringWriter.Tick(currentTime) :
-                Write(stringWriter, ocarinaSelectorN.Text);
+                Write(stringWriter, currentModeN.Text);
 
             if (buttonAggregator == buttonAggregatorN &&
-                ocarinaSelector == ocarinaSelectorN &&
+                currentMode == currentModeN &&
                 stringWriter == stringWriterN)
             {
                 return this;
             }
             return new DeskPi(this, stringWriterN, buttonAggregatorN,
-                ocarinaSelectorN);
+                currentModeN);
         }
 
         private DeskPi ReceiveEvent(PinValueChangeEvent pvce)
@@ -100,6 +99,6 @@ namespace deskpi
 
         private readonly ISsd stringWriter;
         private readonly IButtonAggregator buttonAggregator;
-        private readonly IDeskPiMode ocarinaSelector;
+        private readonly DeskPiMode currentMode;
     }
 }

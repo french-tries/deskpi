@@ -3,20 +3,20 @@ using System.Collections.Immutable;
 
 namespace deskpi
 {
-    public class DummyMode : IDeskPiMode
+    public class DummyMode : DeskPiMode
     {
-        public DummyMode(Song song)
+        public DummyMode(Func<DeskPiMode> buildSelector, Song song) : base(buildSelector)
         {
             this.song = song;
         }
 
-        public ImmutableList<(string, uint)> Text => DeskPiUtils.StringToText(song.Name);
+        public override ImmutableList<(string, uint)> Text => DeskPiUtils.StringToText(song.Name);
 
-        public IDeskPiMode ReceiveKey(KeyId key) => this;
+        protected override DeskPiMode ReceiveKeyImpl(KeyId key) => this;
 
-        public uint? NextTick(uint currentTime) => null;
+        public override uint? NextTick(uint currentTime) => null;
 
-        public IDeskPiMode Tick(uint currentTime) => this;
+        public override DeskPiMode Tick(uint currentTicks) => this;
 
         private readonly Song song;
     }

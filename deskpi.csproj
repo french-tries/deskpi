@@ -103,7 +103,7 @@
     <Compile Include="src\deskpi\ButtonAggregator.cs" />
     <Compile Include="src\deskpi\DeskPi.cs" />
     <Compile Include="src\immutableSsd\ImmutableSsd.cs" />
-    <Compile Include="src\deskpi\IDeskPiMode.cs" />
+    <Compile Include="src\deskpi\DeskPiMode.cs" />
     <Compile Include="src\deskpi\DummyMode.cs" />
     <Compile Include="src\deskpi\HelpMode.cs" />
     <Compile Include="src\piCommon\Ticker.cs" />

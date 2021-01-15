@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Optional;
@@ -7,103 +6,44 @@ using piCommon;
 
 namespace deskpi
 {
-    public enum ModeId
+    public class OcarinaSelector : DeskPiMode
     {
-        Selector, Dummy1, Dummy2, Help, Dummy4, Time, Dummy6, Dummy7,
-        Dummy8, Dummy9, Dummy10, Dummy11, Dummy12, Dummy13
-    }
-
-    public class OcarinaSelector : IDeskPiMode
-    {
-        private readonly Trie<Note, ModeId> songTrie;
+        private readonly Trie<Note, Func<DeskPiMode, DeskPiMode>> songTrie;
         private readonly ImmutableDictionary<KeyId, Note> keyToNote;
         private readonly ImmutableList<Note> receivedNotes = ImmutableList<Note>.Empty;
 
-        private readonly ModeId currentMode;
-        private readonly ImmutableDictionary<ModeId, IDeskPiMode> innerModes;
-
-
         public OcarinaSelector(ImmutableDictionary<ModeId, ModeData> modesData,
-            ImmutableDictionary<ModeId, IDeskPiMode> modes,
-            ImmutableDictionary<KeyId, Note> keyToNote,
-            ModeId defaultMode)
+            ImmutableDictionary<ModeId, Func<DeskPiMode, DeskPiMode>> modes,
+            ImmutableDictionary<KeyId, Note> keyToNote)
+            : base(() => new OcarinaSelector(modesData, modes, keyToNote))
         {
             CheckOrphans(modesData, modes);
 
-            this.songTrie = new Trie<Note, ModeId>();
+            this.songTrie = new Trie<Note, Func<DeskPiMode, DeskPiMode>>();
 
             foreach (var entry in modesData)
             {
-                songTrie = songTrie.Insert(entry.Value.Song.Notes, entry.Key);
+                if (modes.ContainsKey(entry.Key))
+                {
+                    songTrie = songTrie.Insert(entry.Value.Song.Notes, modes[entry.Key]);
+                }
             }
 
             this.keyToNote = keyToNote;
             this.receivedNotes = ImmutableList<Note>.Empty;
-            this.currentMode = defaultMode;
-            this.innerModes = modes;
         }
 
-        private OcarinaSelector(OcarinaSelector source, ModeId? mode = null,
-            Trie<Note, ModeId> songTrie = null, ImmutableDictionary<KeyId, Note> keyToNote = null,
-            ImmutableList<Note> receivedNotes = null,
-            ImmutableDictionary<ModeId, IDeskPiMode> innerModes = null)
+        private OcarinaSelector(OcarinaSelector source,
+            Trie<Note, Func<DeskPiMode, DeskPiMode>> songTrie = null,
+            ImmutableDictionary<KeyId, Note> keyToNote = null,
+            ImmutableList<Note> receivedNotes = null) : base(source)
         {
             this.songTrie = songTrie ?? source.songTrie;
             this.keyToNote = keyToNote ?? source.keyToNote;
             this.receivedNotes = receivedNotes ?? source.receivedNotes;
-            this.currentMode = mode ?? source.currentMode;
-            this.innerModes = innerModes ?? source.innerModes;
         }
 
-        public IDeskPiMode ReceiveKey(KeyId key)
-        {
-            if (currentMode == ModeId.Selector)
-            {
-                return ReceiveSelectionKey(key);
-            }
-            if (key == KeyId.F)
-            {
-                return new OcarinaSelector(this, ModeId.Selector);
-            }
-            return new OcarinaSelector(this,
-                innerModes: innerModes.SetItem(currentMode, innerModes[currentMode].ReceiveKey(key)));
-        }
-
-        public uint? NextTick(uint currentTime) =>
-            innerModes.Values.Min((button) => button.NextTick(currentTime));
-
-        public IDeskPiMode Tick(uint currentTime)
-        {
-            var updated = new List<KeyValuePair<ModeId, IDeskPiMode>>();
-
-            foreach (var entry in innerModes)
-            {
-                var modeN = entry.Value.Tick(currentTime);
-                if (modeN != entry.Value)
-                {
-                    updated.Add(new KeyValuePair<ModeId, IDeskPiMode>(entry.Key, modeN));
-                }
-            }
-
-            if (!updated.Any())
-            {
-                return this;
-            }
-            return new OcarinaSelector(this, innerModes: innerModes.SetItems(updated));
-        }
-
-        public ImmutableList<(string, uint)> Text {
-            get {
-                if (currentMode == ModeId.Selector)
-                {
-                    return DeskPiUtils.StringToText(receivedNotes.Aggregate("",
-            (text, note) =>  Song.NoteToChar(note) + text));
-                }
-                return innerModes[currentMode].Text;
-            }
-        }
-
-        private IDeskPiMode ReceiveSelectionKey(KeyId key)
+        protected override DeskPiMode ReceiveKeyImpl(KeyId key)
         {
             if (!keyToNote.ContainsKey(key))
             {
@@ -116,13 +56,12 @@ namespace deskpi
             }
             newNotes = newNotes.Insert(0, keyToNote[key]);
 
-            Option<ModeId> modeN = songTrie.Find(newNotes);
+            Option<Func<DeskPiMode, DeskPiMode>> modeN = songTrie.Find(newNotes);
 
             return modeN.Match(
                 (arg) =>
                 {
-                    return new OcarinaSelector(this, arg,
-                        receivedNotes: ImmutableList<Note>.Empty);
+                    return arg(new OcarinaSelector(this, receivedNotes: ImmutableList<Note>.Empty));
                 },
                 () =>
                 {
@@ -130,8 +69,19 @@ namespace deskpi
                 });
         }
 
+        public override uint? NextTick(uint currentTime) => null;
+
+        public override DeskPiMode Tick(uint currentTicks) => this;
+
+        public override ImmutableList<(string, uint)> Text {
+            get {
+                return DeskPiUtils.StringToText(receivedNotes.Aggregate("",
+                    (text, note) =>  Song.NoteToChar(note) + text));
+            }
+        }
+
         private static void CheckOrphans(ImmutableDictionary<ModeId, ModeData> modesData,
-            ImmutableDictionary<ModeId, IDeskPiMode> modes)
+            ImmutableDictionary<ModeId, Func<DeskPiMode, DeskPiMode>> modes)
         {
             var modesDataId = from data in modesData
                               select data.Key;

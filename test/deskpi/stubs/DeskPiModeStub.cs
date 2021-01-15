@@ -3,26 +3,26 @@ using System.Collections.Immutable;
 
 namespace deskpi.test.stubs
 {
-    public class DeskPiModeStub : IDeskPiMode
+    public class DeskPiModeStub : DeskPiMode
     {
-        public DeskPiModeStub()
+        public DeskPiModeStub() : base(() => null)
         {
             Next = this;
         }
 
-        public ImmutableList<(string, uint)> Text => DeskPiUtils.StringToText(TextVal);
+        public override ImmutableList<(string, uint)> Text => DeskPiUtils.StringToText(TextVal);
 
-        public uint? NextTick(uint currentTime) => NextTickVal;
+        public override uint? NextTick(uint currentTime) => NextTickVal;
 
-        public IDeskPiMode ReceiveKey(KeyId key)
+        protected override DeskPiMode ReceiveKeyImpl(KeyId key)
         {
             ReceivedKey = key;
             return Next;
         }
 
-        public IDeskPiMode Tick(uint currentTime)
+        public override DeskPiMode Tick(uint currentTicks)
         {
-            ReceivedTick = currentTime;
+            ReceivedTick = currentTicks;
             return Next;
         }
 
