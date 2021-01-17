@@ -1,6 +1,5 @@
-﻿# immutable-ssd
+﻿# deskpi
 
-An experiment on using only immutable objects while creating a seven segments 
-display driver, including support for multiplexed digits and scrolling values.
+A desktop (the physical kind) multifunction thing using a Raspberry Pi. 
 
-Works until around 6 digits, where some flickering start to appear.
+More to follow.
